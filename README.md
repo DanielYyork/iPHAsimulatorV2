@@ -20,6 +20,10 @@ files, prepares Amber/GAFF2 and GROMACS/OpenMM simulation inputs, supports HPC
 execution patterns, and provides early analysis and PHA-enzyme docking
 preparation notebooks.
 
+This software has been developed by KCL under the frame of SATISPHACTION project (https://satisphaction.eu/). 
+SATISPHACTION is a 4-year project awarded in 2025 under the highly competitive EIC Pathfinder Challenge call “Nature-inspired alternatives for food packaging and films for agriculture”. 
+It focuses on developing next-generation, fully biodegradable PHA-based materials for food packaging that replace fossil-based plastics and promote circular economy.
+
 ## Launch the GUI
 
 From the repository root, launch the Streamlit interface with:
