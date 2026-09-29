@@ -491,3 +491,7 @@ development team and SATISPHACTION project funding (EIC Pathfinder) when using t
 
 Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union, European Innovation Council and SMEs Executive Agency (EISMEA). 
 Neither the European Union nor the granting authority can be held responsible for them
+
+<p align="center">
+  <img src="docs/EIC_EUfundedflag.jpg" alt="EIC_EUfundedflag" width="400"/>
+</p>
