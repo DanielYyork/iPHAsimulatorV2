@@ -487,4 +487,7 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 
 Citation information will be added before publication or formal release. Until
 then, please cite the repository URL and acknowledge the iPHASimulator v2
-development team when using this software in research outputs.
+development team and SATISPHACTION project funding (EIC Pathfinder) when using this software in research outputs.
+
+Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union, European Innovation Council and SMEs Executive Agency (EISMEA). 
+Neither the European Union nor the granting authority can be held responsible for them
