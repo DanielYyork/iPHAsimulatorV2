@@ -25,10 +25,10 @@ apply even if a notebook contains historical successful output.
 | --- | --- | --- |
 | [GAFF2 parameterisation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/05A_amber_gaff2_parameterisation.ipynb) | {download}`05A_amber_gaff2_parameterisation.ipynb <../notebooks/05A_amber_gaff2_parameterisation.ipynb>` | AmberTools; import blocker |
 | [CHARMM/CGenFF handoff](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/05B_charmm_cgenff_parameterisation.ipynb) | {download}`05B_charmm_cgenff_parameterisation.ipynb <../notebooks/05B_charmm_cgenff_parameterisation.ipynb>` | Incomplete manual workflow |
-| [OpenMM dry polymer](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06A_openmm_dry_polymer.ipynb) | {download}`06A_openmm_dry_polymer.ipynb <../notebooks/06A_openmm_dry_polymer.ipynb>` | AMBER runner; import blocker |
-| [GROMACS dry preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06B_gromacs_dry_polymer.ipynb) | {download}`06B_gromacs_dry_polymer.ipynb <../notebooks/06B_gromacs_dry_polymer.ipynb>` | Conversion/preparation; import blockers |
-| [GROMACS solvation preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06C_gromacs_solvated_system.ipynb) | {download}`06C_gromacs_solvated_system.ipynb <../notebooks/06C_gromacs_solvated_system.ipynb>` | External commands; import blockers |
-| [OpenMM solvation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06D_openmm_solvated_system.ipynb) | {download}`06D_openmm_solvated_system.ipynb <../notebooks/06D_openmm_solvated_system.ipynb>` | Disabled template |
+| [Amber/OpenMM systems (Route A)](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06A_amber_openmm_system.ipynb) | {download}`06A_amber_openmm_system.ipynb <../notebooks/06A_amber_openmm_system.ipynb>` | AMBER runner; import blocker |
+| [GROMACS dry preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/archive/06B_gromacs_dry_polymer.ipynb) | {download}`06B_gromacs_dry_polymer.ipynb <../notebooks/archive/06B_gromacs_dry_polymer.ipynb>` | Archived (hybrid route, provenance) |
+| [GROMACS solvation preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/archive/06C_gromacs_solvated_system.ipynb) | {download}`06C_gromacs_solvated_system.ipynb <../notebooks/archive/06C_gromacs_solvated_system.ipynb>` | Archived (hybrid route, provenance) |
+| [OpenMM solvation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/archive/06D_openmm_solvated_system.ipynb) | {download}`06D_openmm_solvated_system.ipynb <../notebooks/archive/06D_openmm_solvated_system.ipynb>` | Archived (hybrid route, provenance) |
 
 ## Execution and analysis
 
