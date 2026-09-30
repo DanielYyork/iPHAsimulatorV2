@@ -26,10 +26,12 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+from numbers import Integral
 
 import streamlit as st
 
 from gui.models import GUIData
+from gui.tabs.analysis_comparison import render_analysis_comparison
 from gui.styles import (
     render_info_box,
     render_warning_box,
@@ -816,6 +818,7 @@ def run_selected_analysis_workflow(
     selected_system_name,
     selected_simulation_name,
     generate_figures=True,
+    analysis_stride=50,
 ):
     """
     Run the selected analysis workflow inside the iphasimulator environment.
@@ -824,6 +827,10 @@ def run_selected_analysis_workflow(
     scientific analysis is launched as a separate Python process using the
     iphasimulator environment.
     """
+
+    if isinstance(analysis_stride, bool) or not isinstance(analysis_stride, Integral) or analysis_stride < 1:
+        raise ValueError("Analysis stride must be a positive whole number.")
+    analysis_stride = int(analysis_stride)
 
     workflow_path = (
         Path(workflow_path)
@@ -890,6 +897,7 @@ MODULE_NAME = {module_name!r}
 SYSTEM_NAME = {selected_system_name!r}
 SIMULATION_NAME = {selected_simulation_name!r}
 GENERATE_FIGURES = {generate_figures!r}
+ANALYSIS_STRIDE = {analysis_stride!r}
 
 
 module = importlib.import_module(
@@ -906,6 +914,7 @@ if hasattr(
         system_name=SYSTEM_NAME,
         simulation_name=SIMULATION_NAME,
         generate_figures=GENERATE_FIGURES,
+        analysis_stride=ANALYSIS_STRIDE,
     )
 
 
@@ -918,6 +927,7 @@ elif hasattr(
         system_name=SYSTEM_NAME,
         simulation_name=SIMULATION_NAME,
         generate_figures=GENERATE_FIGURES,
+        analysis_stride=ANALYSIS_STRIDE,
     )
 
 
@@ -1153,6 +1163,11 @@ def _render_completed_analysis_summary(
             )
 
 
+    sampling = analysis_summary.get("sampling", {})
+    saved_stride = sampling.get("stride") if isinstance(sampling, dict) else None
+    if saved_stride is not None:
+        st.caption(f"Saved results used an analysis stride of {saved_stride} saved frame(s).")
+
     with st.expander(
         "Show full analysis summary"
     ):
@@ -1193,8 +1208,8 @@ def render_analysis_tab(
 
     render_info_box(
         "Select a prepared molecular-dynamics system, "
-        "choose a simulation replica and analysis workflow, "
-        "configure the analysis options, and run the analysis."
+        "choose an analysis workflow, then run or inspect one replica "
+        "or compare results already saved for several replicas."
     )
 
 
@@ -1240,6 +1255,19 @@ def render_analysis_tab(
     st.divider()
 
 
+    analysis_view = st.radio(
+        "Analysis view",
+        ["Run / inspect one replica", "Compare saved replicas"],
+        horizontal=True,
+        key="analysis_view",
+    )
+
+    if analysis_view == "Compare saved replicas":
+        render_analysis_comparison(
+            gui_data, selected_system_name, selected_system_type, selected_workflow_name,
+        )
+        return
+
     # =========================================================================
     # Simulation
     # =========================================================================
@@ -1268,6 +1296,23 @@ def render_analysis_tab(
 
     st.markdown(
         "### 4. Analysis Options"
+    )
+
+    analysis_stride = st.number_input(
+        "Analysis stride (saved frames)",
+        min_value=1, value=50, step=1,
+        key="analysis_stride",
+        help=(
+            "Use every Nth saved trajectory frame. 1 uses every frame; "
+            "50 uses every 50th frame. Larger strides analyse fewer frames, "
+            "usually reducing runtime and memory use, but can change the results. "
+            "This does not change the simulation timestep or saved trajectory."
+        ),
+    )
+    st.caption(
+        "Next run: use every saved frame (stride 1)."
+        if analysis_stride == 1 else
+        f"Next run: analyse one in every {analysis_stride} saved frames."
     )
 
 
@@ -1430,6 +1475,11 @@ def render_analysis_tab(
                 "workflow and simulation."
             )
 
+            st.caption(
+                "Changing the stride applies to the next run. Re-run analysis "
+                "to update the results in this replica's existing analysis folder."
+            )
+
 
             if not generate_figures:
 
@@ -1564,6 +1614,7 @@ def render_analysis_tab(
                         generate_figures=(
                             generate_figures
                         ),
+                        analysis_stride=analysis_stride,
                     )
                 )
 

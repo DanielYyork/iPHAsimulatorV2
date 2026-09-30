@@ -140,6 +140,33 @@ div.stButton > button:hover {
     color: white;
     transform: scale(1.02);
 }
+
+/* Compact monomer actions; other application buttons keep their usual size. */
+[class*="st-key-add_monomer_"] button {
+    min-height: 1.75rem;
+    padding: 0.125rem 0.55rem;
+}
+
+[class*="st-key-add_monomer_"] button p {
+    font-size: 0.8rem;
+}
+
+.monomer-status {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.monomer-ready {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+.monomer-incomplete {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+}
+
 .monomer-hover-container {
     position: relative;
     display: block;

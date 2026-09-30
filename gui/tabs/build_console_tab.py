@@ -5,13 +5,13 @@
 Polymer Build Console tab for the iPHAsimulatorV2 Streamlit GUI.
 
 This tab launches the backend PHAPolymerBuilder in the configured
-AmberTools environment and displays the captured subprocess output.
+iPHAsimulator environment and displays the captured subprocess output.
 """
 
 import streamlit as st
 
 from gui.config import (
-    AMBERTOOLS_PYTHON,
+    IPHASIMULATOR_PYTHON,
     PROJECT_ROOT,
 )
 from gui.models import GUIData
@@ -28,7 +28,7 @@ def render_build_console_tab(
     gui_data: GUIData,
 ) -> None:
     """
-    Render the AmberTools polymer-build console.
+    Render the iPHAsimulator polymer-build console.
 
     Parameters
     ----------
@@ -45,7 +45,7 @@ def render_build_console_tab(
 
     render_info_box(
         "This tab launches PHAPolymerBuilder in the configured "
-        "AmberTools23 environment. The Streamlit process remains "
+        "iphasimulator environment. The Streamlit process remains "
         "responsible only for the graphical interface."
     )
 
@@ -142,7 +142,7 @@ def render_build_console_tab(
 
     if build_clicked:
         st.info(
-            "Launching polymer build in AmberTools23..."
+            "Launching polymer build in iPHAsimulator..."
         )
 
         progress = st.progress(0)
@@ -165,7 +165,7 @@ def render_build_console_tab(
                     )
 
                 status.write(
-                    "Preparing AmberTools subprocess..."
+                    "Preparing iPHAsimulator subprocess..."
                 )
 
                 progress.progress(25)
@@ -285,21 +285,21 @@ def render_build_console_tab(
 
     with context_columns[0]:
         st.write(
-            "AmberTools Python:"
+            "iPHAsimulator Python:"
         )
 
         st.code(
-            str(AMBERTOOLS_PYTHON)
+            str(IPHASIMULATOR_PYTHON)
         )
 
-        if AMBERTOOLS_PYTHON.exists():
+        if IPHASIMULATOR_PYTHON.exists():
             st.success(
-                "AmberTools Python was found."
+                "iPHAsimulator Python was found."
             )
 
         else:
             st.error(
-                "AmberTools Python was not found."
+                "iPHAsimulator Python was not found."
             )
 
     with context_columns[1]:
@@ -323,6 +323,6 @@ def render_build_console_tab(
 
     st.caption(
         "The build runs in a separate Python process so that "
-        "AmberTools dependencies do not need to be installed in "
+        "iPHAsimulator dependencies do not need to be installed in "
         "the Streamlit GUI environment."
     )

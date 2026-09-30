@@ -25,7 +25,11 @@ from gui.polymer_helpers import (
     get_polymer_name,
     repeat_sequence,
 )
-from gui.state import clear_polymer_sequence
+from gui.state import (
+    clear_polymer_sequence,
+    set_polymer_sequence,
+    undo_polymer_sequence,
+)
 from gui.styles import render_warning_box
 from pathlib import Path
 
@@ -115,19 +119,19 @@ def _get_monomer_information(
 
     head_prepin_exists = Path(
         parameter_files["head_prepin"]
-    ).exists()
+    ).is_file()
 
     mainchain_prepin_exists = Path(
         parameter_files["mainchain_prepin"]
-    ).exists()
+    ).is_file()
 
     tail_prepin_exists = Path(
         parameter_files["tail_prepin"]
-    ).exists()
+    ).is_file()
 
     frcmod_exists = Path(
         parameter_files["frcmod"]
-    ).exists()
+    ).is_file()
 
     monomer_units_ready = all(
         [
@@ -159,20 +163,15 @@ def _get_monomer_information(
 def _render_monomer_card(
     pha_type,
     monomer_smiles,
-    gui_data,
+    monomer_information,
+    add_count=1,
 ):
     """
-    Render a detailed monomer information popover.
+    Render a monomer information popover with a quick-add button below it.
 
-    The popover contains calculated molecular properties,
-    parameterisation status and an Add button.
+    The popover contains calculated molecular properties
+    and parameterisation status. Adding a monomer does not require opening it.
     """
-
-    monomer_information = _get_monomer_information(
-        pha_type=pha_type,
-        monomer_smiles=monomer_smiles,
-        gui_data=gui_data,
-    )
 
     with st.popover(
         pha_type,
@@ -357,25 +356,71 @@ def _render_monomer_card(
                 "for polymer building."
             )
 
-        # ==================================================
-        # Add monomer
-        # ==================================================
+    # Status and adding remain visible while the detailed card is closed.
+    ready = monomer_information["polymer_builder_ready"]
+    status_class = "monomer-ready" if ready else "monomer-incomplete"
+    status_text = "✓ Ready" if ready else "! Needs files"
+    st.markdown(
+        f'<span class="monomer-status {status_class}">{status_text}</span>',
+        unsafe_allow_html=True,
+    )
+    st.button(
+        "＋ Add" if add_count == 1 else f"＋ Add ×{add_count}",
+        key=f"add_monomer_{pha_type}",
+        help=f"Append {add_count} × {pha_type} to the polymer sequence.",
+        on_click=set_polymer_sequence,
+        args=(list(st.session_state.sequence) + [pha_type] * add_count,),
+    )
 
-        if st.button(
-            f"➕ Add {pha_type}",
-            use_container_width=True,
-            key=f"popover_add_{pha_type}",
-        ):
-            st.session_state.sequence.append(
-                pha_type
+
+def _render_sequence_editor(sequence, available_phas):
+    """Edit a selected position without rendering a form for every unit."""
+    if not sequence:
+        return
+    with st.expander("Edit individual monomers"):
+        # New widget identities after an edit prevent stale positions or choices.
+        revision = st.session_state.sequence_revision
+        position = st.selectbox(
+            "Position to edit",
+            range(len(sequence)),
+            format_func=lambda i: f"{i + 1}. {sequence[i]}",
+            key=f"sequence_edit_position_{revision}",
+        )
+        key = f"sequence_edit_{revision}_{position}"
+        replace_column, move_column, delete_column = st.columns(3)
+        with replace_column:
+            choices = list(dict.fromkeys([sequence[position], *available_phas]))
+            replacement = st.selectbox("Replace with", choices, key=f"{key}_replacement")
+            replaced = list(sequence)
+            replaced[position] = replacement
+            st.button(
+                "Replace unit", key="sequence_replace",
+                disabled=replacement == sequence[position],
+                on_click=set_polymer_sequence, args=(replaced,),
             )
-
-            st.session_state.preview_PHA = (
-                pha_type
+        with move_column:
+            destination = st.number_input(
+                "Move to position", min_value=1, max_value=len(sequence),
+                value=position + 1, step=1, key=f"{key}_destination",
+                help="The selected monomer will occupy this position in the final sequence.",
             )
+            moved = list(sequence)
+            moved.insert(destination - 1, moved.pop(position))
+            st.button(
+                "Move unit", key="sequence_move", disabled=destination == position + 1,
+                on_click=set_polymer_sequence, args=(moved,),
+            )
+        with delete_column:
+            st.write(f"Selected unit: **{sequence[position]}**")
+            st.caption(f"Delete position {position + 1}. Later units move left.")
+            st.button(
+                "Delete unit", key="sequence_delete",
+                on_click=set_polymer_sequence,
+                args=(list(sequence[:position]) + list(sequence[position + 1:]),),
+            )
+        st.caption("Undo restores the sequence before an edit, including a deletion or clear.")
 
-            st.rerun()
-    
+
 def render_polymer_builder_tab(
     gui_data: GUIData,
 ) -> None:
@@ -429,8 +474,9 @@ Click a monomer name to open its information panel. This shows:
 
 **2. Build a polymer sequence**
 
-Press **Add** inside the monomer information panel to append that
-monomer to the current sequence.
+Press **＋ Add** below a monomer name to append that
+monomer to the current sequence. Set **Units per add** to append several
+copies in one click. **Ready** means the required parameter files were found.
 
 Continue adding monomers in the required order. This can be used to
 construct:
@@ -445,6 +491,9 @@ construct:
 Use **Remove last** to remove the most recently added monomer.
 
 Use **Clear** to delete the complete sequence.
+
+Open **Edit individual monomers** to replace, move or delete a chosen position.
+Use **Undo** to reverse the last change, including adding, repeating or clearing.
 
 Use **Repeat sequence** to duplicate the current sequence one or more
 times. This is useful for quickly generating longer chains or repeating
@@ -464,7 +513,7 @@ Open the **Molecular Preview** tab to inspect the generated polymer
 structure.
 
 Open the **Build Console** tab when the sequence is ready to generate
-the parameterised polymer using AmberTools.
+the parameterised polymer using iPHAsimulator.
 """
         )
 
@@ -537,7 +586,7 @@ the parameterised polymer using AmberTools.
     # Polymer summary metrics
     # ======================================================
 
-    top_metrics = st.columns(4)
+    top_metrics = st.columns([1, 1, 1.6, 1.6])
 
     top_metrics[0].metric(
         "Sequence length",
@@ -565,7 +614,7 @@ the parameterised polymer using AmberTools.
 
     top_metrics[3].metric(
         "Build environment",
-        "AmberTools23",
+        "iphasimulator",
     )
 
     # ======================================================
@@ -576,13 +625,22 @@ the parameterised polymer using AmberTools.
         "### Available PHA Monomer Units"
     )
 
-    search = st.text_input(
+    search_column, count_column = st.columns([3, 1])
+    search = search_column.text_input(
         "Filter monomers",
         placeholder=(
             "Try 3HB, 4HB, phenyl, fluor..."
         ),
         key="polymer_builder_monomer_search",
     )
+
+    add_count = count_column.number_input(
+        "Units per add", min_value=1, max_value=1000, value=1, step=1,
+        key="polymer_builder_add_count",
+        help="Applies to every Add button. A whole batch can be undone in one step.",
+    )
+    only_ready = st.checkbox("Show only ready monomers", key="polymer_builder_only_ready")
+    st.caption("Readiness checks the required files. Open a monomer card to see which files are missing.")
 
     search_text = (
         search
@@ -595,6 +653,16 @@ the parameterised polymer using AmberTools.
         for pha_type in available_phas
         if search_text in pha_type.lower()
     ]
+
+    monomer_information = {
+        pha_type: _get_monomer_information(pha_type, monomer_smiles, gui_data)
+        for pha_type in filtered_phas
+    }
+    if only_ready:
+        filtered_phas = [
+            pha_type for pha_type in filtered_phas
+            if monomer_information[pha_type]["polymer_builder_ready"]
+        ]
 
     if not filtered_phas:
         st.info(
@@ -617,7 +685,8 @@ the parameterised polymer using AmberTools.
                 _render_monomer_card(
                     pha_type=pha_type,
                     monomer_smiles=monomer_smiles,
-                    gui_data=gui_data,
+                    monomer_information=monomer_information[pha_type],
+                    add_count=add_count,
                 )
 
     # ======================================================
@@ -646,7 +715,7 @@ the parameterised polymer using AmberTools.
 
     else:
         render_warning_box(
-            "Click the monomer buttons above to begin "
+            "Click ＋ Add below a monomer name to begin "
             "building a polymer sequence."
         )
 
@@ -654,48 +723,35 @@ the parameterised polymer using AmberTools.
     # Sequence controls
     # ======================================================
 
-    control_columns = st.columns(
-        [
-            1,
-            1,
-            1,
-            2,
-        ]
-    )
+    control_columns = st.columns([1, 1, 1, 1, 1.5])
 
     with control_columns[0]:
-        remove_last_clicked = st.button(
+        st.button(
             "↩️ Remove last",
             use_container_width=True,
             key="polymer_builder_remove_last",
+            disabled=not sequence,
+            on_click=set_polymer_sequence, args=(list(sequence[:-1]),),
         )
 
-        if remove_last_clicked:
-            if st.session_state.sequence:
-                st.session_state.sequence.pop()
-
-                if st.session_state.sequence:
-                    st.session_state.preview_PHA = (
-                        st.session_state.sequence[-1]
-                    )
-
-                else:
-                    st.session_state.preview_PHA = None
-
-                st.rerun()
-
     with control_columns[1]:
-        clear_clicked = st.button(
+        st.button(
             "🧹 Clear",
             use_container_width=True,
             key="polymer_builder_clear",
+            disabled=not sequence,
+            on_click=clear_polymer_sequence,
         )
 
-        if clear_clicked:
-            clear_polymer_sequence()
-            st.rerun()
-
     with control_columns[2]:
+        st.button(
+            "Undo", key="polymer_builder_undo", use_container_width=True,
+            disabled=not st.session_state.sequence_history,
+            help="Undo the last edit. The last 50 changes are kept for this session.",
+            on_click=undo_polymer_sequence,
+        )
+
+    with control_columns[3]:
         repeat_count = st.number_input(
             "Repeat sequence",
             min_value=1,
@@ -705,28 +761,17 @@ the parameterised polymer using AmberTools.
             key="polymer_builder_repeat_count",
         )
 
-    with control_columns[3]:
-        repeat_clicked = st.button(
+    with control_columns[4]:
+        st.button(
             "🔁 Apply repeat",
             use_container_width=True,
             key="polymer_builder_apply_repeat",
+            disabled=not sequence or repeat_count == 1,
+            on_click=set_polymer_sequence,
+            args=(repeat_sequence(sequence, repeat_count),),
         )
 
-        if repeat_clicked:
-            if not st.session_state.sequence:
-                st.warning(
-                    "Create a sequence before repeating it."
-                )
-
-            else:
-                st.session_state.sequence = repeat_sequence(
-                    sequence=(
-                        st.session_state.sequence
-                    ),
-                    repetitions=repeat_count,
-                )
-
-                st.rerun()
+    _render_sequence_editor(sequence, available_phas)
 
     # ======================================================
     # Sequence details
