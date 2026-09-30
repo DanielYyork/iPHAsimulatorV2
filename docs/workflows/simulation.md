@@ -37,13 +37,13 @@ as skipped for nonperiodic input. Review stage logs, the final structure and
 `openmm_summary.log` before increasing the run length. These short settings are
 for a smoke test, not equilibration or convergence evidence.
 
-**Solvated OpenMM (Route A) is notebook 06B.** It builds the GAFF2 polymer in OPC
+**Solvated OpenMM with Amber force fields is notebook 06B.** It builds the GAFF2 polymer in OPC
 water with tleap (optionally with a posed ff19SB protein) and runs a short OpenMM
 test. The older native-OpenMM template (`archive/hybrid_06D`) stays disabled.
 
 ## GROMACS: convert and prepare (archived hybrid route)
 
-For Route C (CHARMM-GUI / CGenFF), use notebooks **06C** (dry polymer) and **06D**
+For the CHARMM/GROMACS route (CHARMM-GUI / CGenFF), use notebooks **06C** (dry polymer) and **06D**
 (Solution Builder package) instead. The steps below are the archived GAFF2 → GROMACS
 route that produced the polymer-only benchmark.
 

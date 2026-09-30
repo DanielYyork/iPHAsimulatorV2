@@ -18,8 +18,8 @@ has been validated. Historical notebook outputs may predate current source error
 | Basic polymer analysis | Notebook Rg, end-to-end distance and SASA using MDTraj | Notebook-level workflow; requires meaningful selections and preprocessed coordinates |
 | Enzyme stability | Notebook energy and RMSD diagnostics | System-specific paths/selections; manual interpretation |
 | Docking preparation | Notebook GRO-to-PDB conversion and manual job records | No HADDOCK submission or validated complex builder; inspect/extract the polymer first |
-| CHARMM/CGenFF (Route C) | 05B documents the CHARMM-GUI route with penalty and stereocentre checks; 06C/06D prepare and check GROMACS folders from CHARMM-GUI downloads | CGenFF and CHARMM-GUI steps are manual; minimisation runs only on request |
-| Solvated OpenMM (Route A) | Notebook 06B: tleap GAFF2 + OPC (optional ff19SB protein), short OpenMM test, production script | tleap/OpenMM are mocked in tests; GAFF2 + OPC is not validated for PHA |
+| CHARMM/CGenFF with GROMACS | 05B documents the CHARMM-GUI route with penalty and stereocentre checks; 06C/06D prepare and check GROMACS folders from CHARMM-GUI downloads | CGenFF and CHARMM-GUI steps are manual; minimisation runs only on request |
+| Solvated OpenMM (Amber force fields) | Notebook 06B: tleap GAFF2 + OPC (optional ff19SB protein), short OpenMM test, production script | tleap/OpenMM are mocked in tests; GAFF2 + OPC is not validated for PHA |
 | Packing / script builders | Additional single-chain, melt and OpenMM script classes | Advanced, separate interfaces; not a fully unified end-to-end tutorial |
 | APO comparisons, catalytic geometry, repeat-unit contacts, ML/DFT | Not part of the reusable contact workflow | Planned or outside the documented v2 scope |
 

@@ -1,4 +1,4 @@
-"""Route A solvated systems: tleap (GAFF2 + OPC, optional ff19SB) and short OpenMM runs.
+"""Amber/OpenMM solvated systems: tleap (GAFF2 + OPC, optional ff19SB) and short OpenMM runs.
 
 ``tleap`` and OpenMM run only when :func:`build_solvated_amber_system`,
 :func:`run_openmm_short_test` or a generated production script is called.
@@ -69,7 +69,7 @@ class TleapLogSummary:
 
 @dataclass(frozen=True)
 class OpenMMTestSettings:
-    """PME / HBonds / LangevinMiddle / Monte Carlo barostat settings for Route A."""
+    """PME / HBonds / LangevinMiddle / Monte Carlo barostat settings for the Amber/OpenMM route."""
 
     cutoff_nm: float = 1.0
     temperature_kelvin: float = 300.0
@@ -326,7 +326,7 @@ def write_openmm_production_files(
     system_dir: str | Path,
     *,
     production_ns: float = 100.0,
-    job_name: str = "route_a",
+    job_name: str = "amber_openmm",
     settings: OpenMMTestSettings = OpenMMTestSettings(),
     report_interval_ps: float = 100.0,
 ) -> tuple[Path, Path]:
@@ -371,7 +371,7 @@ def _run_tleap(folder: Path, input_name: str, log_name: str, tleap: str, runner)
 
 
 PRODUCTION_SCRIPT_TEMPLATE = '''#!/usr/bin/env python
-"""Route A OpenMM production run written by iPHASimulator notebook 06B.
+"""Amber/OpenMM production run written by iPHASimulator notebook 06B.
 
 Restarts from production.chk when it exists. Settings: PME {cutoff_nm} nm,
 HBonds constraints, LangevinMiddle {temperature} K, {timestep_fs} fs,

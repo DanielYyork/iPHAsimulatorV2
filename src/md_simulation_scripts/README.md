@@ -5,7 +5,7 @@ and enzyme-contact notebooks use Python analysis dependencies.
 
 ## Parameterisation provenance
 
-The GK13/ANC45 × P3HO4/P3HB4 production simulations analysed here used Route C:
+The GK13/ANC45 × P3HO4/P3HB4 production simulations analysed here used the CHARMM/GROMACS route:
 CHARMM36m + CGenFF (via CHARMM-GUI Ligand Reader & Modeler, from iPHASimulator's
 R-configured SDF/PDB) + CHARMM TIP3P + SOD/CLA in GROMACS. No GAFF2 charges enter
 them.

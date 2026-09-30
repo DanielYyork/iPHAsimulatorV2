@@ -1,4 +1,4 @@
-"""Route C (CHARMM-GUI → GROMACS) helpers on small synthetic systems; gmx is never run."""
+"""CHARMM-GUI → GROMACS helpers on small synthetic systems; gmx is never run."""
 
 import subprocess
 
@@ -7,16 +7,16 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 from iphasimulator.charmmgui_import import (
-    ROUTE_C_TEMPLATE_DIR,
+    CHARMM_GROMACS_TEMPLATE_DIR,
     check_charmm_defaults,
     check_net_charge,
     format_checks,
     prepare_dry_ligand_folder,
-    prepare_route_c_run_folder,
+    prepare_charmm_gui_run_folder,
     read_minimization_result,
     run_dry_minimization,
     validate_dry_ligand_folder,
-    validate_route_c_run_folder,
+    validate_charmm_gui_run_folder,
 )
 
 
@@ -116,10 +116,10 @@ def _status(results, prefix):
     return next(result.status for result in results if result.name.startswith(prefix))
 
 
-def test_prepare_route_c_run_folder_follows_production_layout(tmp_path):
+def test_prepare_charmm_gui_run_folder_follows_production_layout(tmp_path):
     download, _ = _write_solution_builder(tmp_path / "download")
 
-    run = prepare_route_c_run_folder(download, tmp_path / "run", job_name="PHO4_GK13")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run", job_name="PHO4_GK13")
 
     assert (run / "step5_input.gro").is_file()
     assert not (run / "step3_input.gro").exists()
@@ -127,18 +127,18 @@ def test_prepare_route_c_run_folder_follows_production_layout(tmp_path):
     assert not (run / "step5_production.mdp").exists()
     assert (run / "toppar" / "LIG.itp").is_file()
     for name in ("step6.0_minimization.mdp", "step6.1_nvt.mdp", "step6.2_npt.mdp", "step7_production.mdp"):
-        assert (run / name).read_text() == (ROUTE_C_TEMPLATE_DIR / name).read_text()
+        assert (run / name).read_text() == (CHARMM_GROMACS_TEMPLATE_DIR / name).read_text()
     slurm = (run / "run_hpc_equilibration_production.slurm").read_text()
     assert "#SBATCH --job-name=PHO4_GK13" in slurm
     assert "{JOB_NAME}" not in slurm
     assert (download / "gromacs" / "step3_input.gro").is_file()  # source untouched
 
 
-def test_validate_route_c_run_folder_passes_for_consistent_system(tmp_path):
+def test_validate_charmm_gui_run_folder_passes_for_consistent_system(tmp_path):
     download, sdf = _write_solution_builder(tmp_path / "download")
-    run = prepare_route_c_run_folder(download, tmp_path / "run")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
 
-    results = validate_route_c_run_folder(run, sdf_path=sdf)
+    results = validate_charmm_gui_run_folder(run, sdf_path=sdf)
 
     assert all(result.status == "PASS" for result in results), format_checks(results)
     assert format_checks(results).endswith("Overall: PASS")
@@ -146,9 +146,9 @@ def test_validate_route_c_run_folder_passes_for_consistent_system(tmp_path):
 
 def test_stereocentre_check_survives_molecule_split_across_box(tmp_path):
     download, sdf = _write_solution_builder(tmp_path / "download", wrap_first_atom=True)
-    run = prepare_route_c_run_folder(download, tmp_path / "run")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
 
-    results = validate_route_c_run_folder(run, sdf_path=sdf)
+    results = validate_charmm_gui_run_folder(run, sdf_path=sdf)
 
     assert _status(results, "LIG stereocentres") == "PASS"
 
@@ -157,9 +157,9 @@ def test_stereocentre_check_fails_for_s_ligand(tmp_path):
     download, _ = _write_solution_builder(tmp_path / "download", smiles=S_LIGAND)
     sdf = tmp_path / "s.sdf"
     Chem.MolToMolFile(_embedded(S_LIGAND), str(sdf))
-    run = prepare_route_c_run_folder(download, tmp_path / "run")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
 
-    results = validate_route_c_run_folder(run, sdf_path=sdf)
+    results = validate_charmm_gui_run_folder(run, sdf_path=sdf)
 
     assert _status(results, "LIG stereocentres") == "FAIL"
     assert "S" in next(r.evidence for r in results if r.name.startswith("LIG stereocentres"))
@@ -167,21 +167,21 @@ def test_stereocentre_check_fails_for_s_ligand(tmp_path):
 
 def test_stereocentre_check_skips_without_sdf(tmp_path):
     download, _ = _write_solution_builder(tmp_path / "download")
-    run = prepare_route_c_run_folder(download, tmp_path / "run")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
 
-    assert _status(validate_route_c_run_folder(run), "LIG stereocentres") == "SKIP"
+    assert _status(validate_charmm_gui_run_folder(run), "LIG stereocentres") == "SKIP"
 
 
 def test_checks_fail_for_broken_topology(tmp_path):
     download, sdf = _write_solution_builder(tmp_path / "download")
-    run = prepare_route_c_run_folder(download, tmp_path / "run")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
     (run / "toppar" / "forcefield.itp").write_text("[ defaults ]\n1 2 yes 0.5 0.8333\n")
     (run / "toppar" / "ions.itp").write_text(IONS_ITP.replace("-1.000", "-2.000"))
     lig = run / "toppar" / "LIG.itp"
     lig.write_text(lig.read_text().replace("CG321", "c3", 1))
     (run / "index.ndx").write_text("[ System ]\n1\n")
 
-    results = validate_route_c_run_folder(run, sdf_path=sdf)
+    results = validate_charmm_gui_run_folder(run, sdf_path=sdf)
 
     for prefix in ("[ defaults ]", "net charge", "LIG atom types", "run files"):
         assert _status(results, prefix) == "FAIL", prefix
@@ -191,27 +191,27 @@ def test_checks_fail_for_broken_topology(tmp_path):
 
 def test_atom_order_check_detects_reordered_ligand(tmp_path):
     download, sdf = _write_solution_builder(tmp_path / "download")
-    run = prepare_route_c_run_folder(download, tmp_path / "run")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
     lines = (run / "step5_input.gro").read_text().splitlines()
     lines[2], lines[3] = lines[3], lines[2]
     (run / "step5_input.gro").write_text("\n".join(lines) + "\n")
 
-    results = validate_route_c_run_folder(run, sdf_path=sdf)
+    results = validate_charmm_gui_run_folder(run, sdf_path=sdf)
 
     assert _status(results, "LIG atom names/order") == "FAIL"
 
 
-def test_prepare_route_c_run_folder_refuses_existing_or_nested_output(tmp_path):
+def test_prepare_charmm_gui_run_folder_refuses_existing_or_nested_output(tmp_path):
     download, _ = _write_solution_builder(tmp_path / "download")
     (tmp_path / "exists").mkdir()
 
     with pytest.raises(FileExistsError):
-        prepare_route_c_run_folder(download, tmp_path / "exists")
+        prepare_charmm_gui_run_folder(download, tmp_path / "exists")
     with pytest.raises(ValueError, match="Refusing"):
-        prepare_route_c_run_folder(download, download / "gromacs" / "run")
+        prepare_charmm_gui_run_folder(download, download / "gromacs" / "run")
 
 
-def test_prepare_route_c_run_folder_uses_custom_templates(tmp_path):
+def test_prepare_charmm_gui_run_folder_uses_custom_templates(tmp_path):
     download, _ = _write_solution_builder(tmp_path / "download")
     templates = tmp_path / "mine"
     templates.mkdir()
@@ -219,7 +219,7 @@ def test_prepare_route_c_run_folder_uses_custom_templates(tmp_path):
                  "run_step6_local.sh", "run_hpc_equilibration_production.slurm"):
         (templates / name).write_text(f"; my {name}\n")
 
-    run = prepare_route_c_run_folder(download, tmp_path / "run", template_dir=templates)
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run", template_dir=templates)
 
     assert (run / "step6.1_nvt.mdp").read_text() == "; my step6.1_nvt.mdp\n"
     assert (run / "run_hpc_equilibration_production.slurm").read_text().startswith("; my")
@@ -318,7 +318,7 @@ def test_prepared_run_folder_is_writable_when_download_is_read_only(tmp_path):
         path.chmod(0o444)
     toppar.chmod(0o555)
     try:
-        run = prepare_route_c_run_folder(download, tmp_path / "run")
+        run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
         (run / "toppar" / "LIG.itp").write_text("editable\n")
         (run / "toppar" / "new.itp").write_text("")
     finally:

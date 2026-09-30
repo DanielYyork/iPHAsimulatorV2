@@ -1,4 +1,4 @@
-"""Helpers for CHARMM-GUI / CGenFF outputs (Route C).
+"""Helpers for CHARMM-GUI / CGenFF outputs (CHARMM/GROMACS route).
 
 Nothing here modifies a CHARMM-GUI download. The ``prepare_*`` functions write
 only into a new folder chosen by the caller, and ``gmx`` runs only when the
@@ -185,11 +185,11 @@ def _leading_float(text: str) -> float | None:
 
 
 # ---------------------------------------------------------------------------
-# Route C GROMACS systems (notebooks 06C and 06D)
+# CHARMM-GUI GROMACS systems (notebooks 06C and 06D)
 # ---------------------------------------------------------------------------
 
-ROUTE_C_TEMPLATE_DIR = Path(__file__).resolve().parent / "data" / "route_c_gromacs"
-ROUTE_C_MDP_FILES = (
+CHARMM_GROMACS_TEMPLATE_DIR = Path(__file__).resolve().parent / "data" / "charmm_gromacs"
+CHARMM_GROMACS_MDP_FILES = (
     "step6.0_minimization.mdp",
     "step6.1_nvt.mdp",
     "step6.2_npt.mdp",
@@ -198,7 +198,7 @@ ROUTE_C_MDP_FILES = (
 LOCAL_SCRIPT = "run_step6_local.sh"
 HPC_SCRIPT = "run_hpc_equilibration_production.slurm"
 HPC_SCRIPT_TEMPLATE = HPC_SCRIPT + ".template"
-ROUTE_C_INDEX_GROUPS = ("SOLU", "SOLV")
+CHARMM_GUI_INDEX_GROUPS = ("SOLU", "SOLV")
 
 CHARMM_DEFAULTS = ("1", "2", "yes", 1.0, 1.0)
 CGENFF_TYPE_PATTERN = re.compile(r"^[A-Z]G[A-Z0-9]+$")
@@ -210,7 +210,7 @@ DRY_MDP = "dry_minimization.mdp"
 DRY_DEFFNM = "dry_minimization"
 DRY_MINIMIZATION_MDP = """\
 ; Dry (no solvent) steepest-descent minimisation of the CGenFF polymer.
-; Route C sanity check only: GROMACS' Verlet scheme needs a periodic box, so
+; Sanity check only: GROMACS' Verlet scheme needs a periodic box, so
 ; the molecule sits alone in a box larger than twice the cut-off.
 integrator              = steep
 emtol                   = 100.0
@@ -548,12 +548,12 @@ def check_ligand_stereocentres(
     return CheckResult(name, "PASS" if ok else "FAIL", shown)
 
 
-def check_route_c_run_files(folder: str | Path) -> CheckResult:
+def check_gromacs_run_files(folder: str | Path) -> CheckResult:
     folder = Path(folder)
-    required = ("step5_input.gro", "topol.top", "index.ndx", *ROUTE_C_MDP_FILES, LOCAL_SCRIPT, HPC_SCRIPT)
+    required = ("step5_input.gro", "topol.top", "index.ndx", *CHARMM_GROMACS_MDP_FILES, LOCAL_SCRIPT, HPC_SCRIPT)
     missing = [name for name in required if not (folder / name).is_file()]
     groups = _index_groups(folder / "index.ndx") if (folder / "index.ndx").is_file() else set()
-    missing_groups = [group for group in ROUTE_C_INDEX_GROUPS if group not in groups]
+    missing_groups = [group for group in CHARMM_GUI_INDEX_GROUPS if group not in groups]
     problems = []
     if missing:
         problems.append("missing " + ", ".join(missing))
@@ -564,7 +564,7 @@ def check_route_c_run_files(folder: str | Path) -> CheckResult:
     return CheckResult(
         "run files and index groups",
         "PASS",
-        f"{len(required)} files; index groups {', '.join(ROUTE_C_INDEX_GROUPS)} present",
+        f"{len(required)} files; index groups {', '.join(CHARMM_GUI_INDEX_GROUPS)} present",
     )
 
 
@@ -591,13 +591,13 @@ def validate_dry_ligand_folder(
     ]
 
 
-def validate_route_c_run_folder(
+def validate_charmm_gui_run_folder(
     folder: str | Path,
     *,
     sdf_path: str | Path | None = None,
     ligand: str = "LIG",
 ) -> list[CheckResult]:
-    """Read-only checks for a folder made by :func:`prepare_route_c_run_folder`."""
+    """Read-only checks for a folder made by :func:`prepare_charmm_gui_run_folder`."""
 
     folder = Path(folder)
     topology = folder / "topol.top"
@@ -611,7 +611,7 @@ def validate_route_c_run_folder(
         check_cgenff_types(topology, ligand),
         check_ligand_atom_order(gro, topology, ligand),
         check_ligand_stereocentres(gro, topology, sdf_path, ligand),
-        check_route_c_run_files(folder),
+        check_gromacs_run_files(folder),
     ]
 
 
@@ -669,19 +669,19 @@ def prepare_dry_ligand_folder(
     return output
 
 
-def prepare_route_c_run_folder(
+def prepare_charmm_gui_run_folder(
     solution_builder_dir: str | Path,
     run_dir: str | Path,
     *,
     template_dir: str | Path | None = None,
-    job_name: str = "route_c",
+    job_name: str = "charmm_gromacs",
 ) -> Path:
     """Turn a Solution Builder download into a run folder, as in the production runs.
 
     Copies ``gromacs/`` (topology, ``toppar/``, ``index.ndx``, coordinates) into the
     new ``run_dir``, renames ``step3_input.gro`` to ``step5_input.gro``, leaves out
-    CHARMM-GUI's ``step4.x``/``step5`` mdp files, and adds the Route C mdp files and
-    scripts from ``template_dir`` (default: the packaged Route C templates).
+    CHARMM-GUI's ``step4.x``/``step5`` mdp files, and adds the CHARMM/GROMACS mdp files and
+    scripts from ``template_dir`` (default: the packaged CHARMM/GROMACS templates).
     """
 
     source = Path(solution_builder_dir).expanduser().resolve()
@@ -691,10 +691,10 @@ def prepare_route_c_run_folder(
         raise FileNotFoundError(
             f"Not a Solution Builder gromacs/ folder (needs step3_input.gro and topol.top): {source}"
         )
-    templates = Path(template_dir).expanduser().resolve() if template_dir else ROUTE_C_TEMPLATE_DIR
+    templates = Path(template_dir).expanduser().resolve() if template_dir else CHARMM_GROMACS_TEMPLATE_DIR
     missing = [
         name
-        for name in (*ROUTE_C_MDP_FILES, LOCAL_SCRIPT)
+        for name in (*CHARMM_GROMACS_MDP_FILES, LOCAL_SCRIPT)
         if not (templates / name).is_file()
     ]
     if not ((templates / HPC_SCRIPT).is_file() or (templates / HPC_SCRIPT_TEMPLATE).is_file()):
@@ -713,7 +713,7 @@ def prepare_route_c_run_folder(
         else:
             shutil.copyfile(item, output / item.name)
 
-    for name in (*ROUTE_C_MDP_FILES, LOCAL_SCRIPT):
+    for name in (*CHARMM_GROMACS_MDP_FILES, LOCAL_SCRIPT):
         shutil.copyfile(templates / name, output / name)
     if (templates / HPC_SCRIPT).is_file():
         shutil.copyfile(templates / HPC_SCRIPT, output / HPC_SCRIPT)

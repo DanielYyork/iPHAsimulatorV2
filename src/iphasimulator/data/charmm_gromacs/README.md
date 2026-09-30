@@ -1,6 +1,6 @@
-# Route C GROMACS run templates
+# CHARMM/GROMACS run templates
 
-Run files for a CHARMM-GUI Solution Builder GROMACS package (Route C: CHARMM36m +
+Run files for a CHARMM-GUI Solution Builder GROMACS package (CHARMM36m +
 CGenFF + CHARMM TIP3P + SOD/CLA). Notebook 06D copies them next to the package's
 `gromacs/` files after renaming `step3_input.gro` to `step5_input.gro`.
 

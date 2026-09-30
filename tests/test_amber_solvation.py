@@ -1,4 +1,4 @@
-"""Route A tleap/OpenMM helpers; tleap is mocked and OpenMM is never run."""
+"""Amber/OpenMM tleap helpers; tleap is mocked and OpenMM is never run."""
 
 import ast
 import subprocess
