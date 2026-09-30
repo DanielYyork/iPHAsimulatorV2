@@ -45,6 +45,7 @@ iphasimulator = [
     "data/gromacs_mdp/*.mdp",
     "data/gromacs_solvation/*.itp",
     "data/gromacs_solvation/*.mdp",
+    "data/route_c_gromacs/*",
 ]
 
 [tool.pytest.ini_options]

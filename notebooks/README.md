@@ -20,8 +20,8 @@ polymer to protein to water and ions, so parameters from the two families are ne
 | Water / ions | OPC (with the ion parameters loaded by `leaprc.water.opc`) | CHARMM TIP3P + SOD/CLA |
 | Engine | OpenMM | GROMACS |
 | Parameters | `05A_amber_gaff2_parameterisation.ipynb` | `05B_charmm_cgenff_parameterisation.ipynb` |
-| Dry polymer check | `06A_openmm_dry_polymer.ipynb` | `06C_gromacs_dry_polymer.ipynb` (planned) |
-| Solvated system (polymer in water; polymer + protein) | `06B_openmm_solvated_system.ipynb` (planned) | `06D_gromacs_solvated_system.ipynb` (planned) |
+| Dry polymer check | `06A_openmm_dry_polymer.ipynb` | `06C_gromacs_dry_polymer.ipynb` |
+| Solvated system (polymer in water; polymer + protein) | `06B_openmm_solvated_system.ipynb` (planned) | `06D_gromacs_solvated_system.ipynb` |
 | HPC | `07_hpc_workflows.ipynb`, Route A section | `07_hpc_workflows.ipynb`, Route C section |
 
 The enzyme–PHA production simulations (GK13/ANC45 × P3HO_4/P3HB_4) used **Route C**.
@@ -65,8 +65,8 @@ Route A (Amber / OpenMM):
 Route C (CHARMM / GROMACS):
 
 8. `05B_charmm_cgenff_parameterisation.ipynb`: CGenFF parameters through CHARMM-GUI Ligand Reader & Modeler and the Solution Builder handoff.
-9. `06C_gromacs_dry_polymer.ipynb` (planned): dry (vacuum) GROMACS check of the CGenFF polymer, from the Ligand Reader's native `gromacs/` files.
-10. `06D_gromacs_solvated_system.ipynb` (planned): prepare and validate a CHARMM-GUI Solution Builder GROMACS package (polymer in water; polymer + protein), as used for the enzyme–PHA runs.
+9. `06C_gromacs_dry_polymer.ipynb`: dry (vacuum) GROMACS check of the CGenFF polymer, from the Ligand Reader's native `gromacs/` files.
+10. `06D_gromacs_solvated_system.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package (polymer in water; polymer + protein), as used for the enzyme–PHA runs.
 
 Execution and analysis:
 
