@@ -402,6 +402,11 @@ root_dir : str or pathlib.Path, optional
         with open(leap_file, 'w') as f:
             f.write(leap_contents)
         
+        print("Built LEaP dir:", built_leap_dir)
+        print("LEaP input exists:", leap_file.exists())
+        print("LEaP input path:", leap_file)
+        print("LEaP log path:", leap_log)
+        
         tleap_command = f'tleap -f {leap_file} > {leap_log}'
         self.run_command(tleap_command, workdir=built_leap_dir)
         
@@ -414,6 +419,9 @@ root_dir : str or pathlib.Path, optional
         print('PRMTOP:     ', prmtop_file)
         print('RST7:       ', rst7_file)
         print('PDB:        ', pdb_file)
+        print("Builder root:", self.paths.root_dir)
+        print("Built PHAs dir:", self.paths.built_PHAs_dir)
+        print("Current working directory:", Path.cwd())
         return {'PHA_type': PHA_type, 'length': length, 'built_name': built_name, 'sequence_codes': sequence_codes, 'sequence_string': sequence_string, 'leap_file': leap_file, 'leap_log': leap_log, 'prmtop_file': prmtop_file, 'rst7_file': rst7_file, 'pdb_file': pdb_file}
 
     def smiles_to_pdb(
