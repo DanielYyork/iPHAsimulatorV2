@@ -107,7 +107,7 @@ with st.sidebar:
     )
 
     st.write(
-        "AmberTools Python"
+        "iPHAsimulator Python"
     )
 
     st.code(
@@ -193,12 +193,12 @@ with st.sidebar:
 
         if IPHASIMULATOR_PYTHON.exists():
             st.success(
-                "AmberTools Python found."
+                "iPHAsimulator Python found."
             )
 
         else:
             st.error(
-                "AmberTools Python not found."
+                "iPHAsimulator Python not found."
             )
 
     # ======================================================
@@ -337,4 +337,4 @@ with openmm_builder_tab:
 with analysis_tab:
     render_analysis_tab(
         gui_data
-    )  
+    )
