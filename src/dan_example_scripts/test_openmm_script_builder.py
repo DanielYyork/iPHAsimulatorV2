@@ -13,7 +13,7 @@ from src.iphasimulator.openmmscript_builder import OpenMMScriptBuilder
 
 
 builder = OpenMMScriptBuilder(
-    root_dir="../structure_database",
+    root_dir="../../structure_database",
     polymer_names=["P3HB_10"],
     number_of_polymers=[25],
     run_name="BuilderTest",
@@ -42,7 +42,7 @@ builder.add_basic_NPT(
 )
 
 output_script = builder.write_script(
-    "dan_example_scripts/generated_builder_test.py"
+    "src/dan_example_scripts/generated_builder_test.py"
 )
 
 print("Generated script:")

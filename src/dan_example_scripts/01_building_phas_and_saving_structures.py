@@ -70,7 +70,7 @@ show_PHA_monomer(
 from src.iphasimulator.build_pha import *
 
 # Intialise builder - this a relative path to the structure database (change as you need - although this should be fine for notebooks)
-builder = PHAPolymerBuilder("../structure_database")
+builder = PHAPolymerBuilder("../../structure_database")
 
 # Build a PHA - define type and length
 output = builder.build_PHA_polymer("3HB", 20)
@@ -101,7 +101,7 @@ output = builder.build_PHA_polymer("3HB", 20)
 from src.iphasimulator.pha_filepath_manager import PHAFileManager
 
 # Initialise a filepath manager object - this can retrieve paths 
-paths = PHAFileManager("../structure_database")
+paths = PHAFileManager("../../structure_database")
 
 # Redefine PHA type and built polymer length and retrieve polymer name
 PHA_type = "3HB"

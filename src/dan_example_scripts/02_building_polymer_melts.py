@@ -41,7 +41,7 @@ from src.iphasimulator.pha_melt_builder import PHAMeltBuilder
 
 # Pass the structure database to the melt builder and intialise
 melt_builder = PHAMeltBuilder(
-    root_dir="../structure_database"
+    root_dir="../../structure_database"
 )
 
 """

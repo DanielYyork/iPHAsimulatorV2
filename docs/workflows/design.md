@@ -56,4 +56,4 @@ This route requires Open Babel, AmberTools and a repository-root environment
 because some imports are written as `src.iphasimulator`. It is not substituted
 silently for the RDKit tutorial. See the generated
 {py:class}`iphasimulator.build_pha.PHAPolymerBuilder` reference and the
-`dan_example_scripts` directory in the repository for its developing examples.
+`src/dan_example_scripts` directory in the repository for its developing examples.

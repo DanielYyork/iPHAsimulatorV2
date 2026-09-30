@@ -7,7 +7,7 @@ from src.iphasimulator.sw_openmm import GromacsSimulation
 
 if __name__ == "__main__":
 
-    paths = PHAFileManager("../structure_database")
+    paths = PHAFileManager("../../structure_database")
 
     polymer_names = ["P3HB_10"]
     number_of_polymers = [25]
