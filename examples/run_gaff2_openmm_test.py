@@ -20,7 +20,7 @@ from iphasimulator.simulation_openmm_amber_runner import (
 
 TARGETS = ("P3HB_4", "P3HB_8", "P3HO_4", "P3HO_8", "P3HDD_4", "P3HDD_8")
 DEFAULT_TARGETS = ("P3HB_4", "P3HO_4", "P3HDD_4")
-CHARGE_METHODS = ("bcc", "gas", "mul")
+CHARGE_METHODS = ("abcg2", "bcc", "gas", "mul")
 
 
 @dataclass(frozen=True)
@@ -156,16 +156,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--charge-method",
         choices=CHARGE_METHODS,
-        default="bcc",
-        help=(
-            "Charge method passed to antechamber -c. Use gas for fast debugging "
-            "without AM1-BCC."
-        ),
+        default="abcg2",
+        help="antechamber charge method (default abcg2). Existing project benchmark/enzyme runs used bcc.",
     )
     parser.add_argument(
         "--skip-am1-bcc",
         action="store_true",
-        help="Shortcut for --charge-method gas.",
+        help="Shortcut for --charge-method gas; bypasses the AM1 step used by both abcg2 and bcc.",
     )
     parser.add_argument(
         "--atom-count-warning-threshold",

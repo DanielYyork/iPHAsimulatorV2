@@ -1,7 +1,7 @@
 # Config-driven iPHASimulator v2 validation workflow.
 #
 # This file is intended for script and HPC runs. Start with small systems and
-# fast gas charges, then switch charge_method to bcc for more realistic GAFF2
+# fast gas charges, then switch charge_method to abcg2 (default) or bcc for more realistic GAFF2
 # charge assignment after the workflow is stable.
 
 output_root: examples/output

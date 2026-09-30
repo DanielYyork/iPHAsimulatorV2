@@ -3,6 +3,12 @@
 Trajectory preparation needs only **Bash and GROMACS**. The research analysis
 and enzyme-contact notebooks use Python analysis dependencies.
 
+## Parameterisation provenance
+
+The GK13/ANC45 × P3HO4/P3HB4 production simulations analysed here used GAFF2 with
+AM1-BCC charges (antechamber -c bcc). The iPHASimulator package now defaults to
+ABCG2 for new systems.
+
 ```text
 src/md_simulation_scripts/
 ├── README.md

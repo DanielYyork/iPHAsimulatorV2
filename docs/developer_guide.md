@@ -135,7 +135,8 @@ inspect. The detailed conceptual comparison belongs in notebook 05 so the 06
 notebooks can stay focused on reproducible execution.
 
 The GAFF2 workflow records the exact AmberTools command for each stage, separate
-raw logs for `antechamber` and `sqm`, and per-stage timings. For debugging large
+raw logs for `antechamber` and `sqm`, and per-stage timings. It defaults to
+`abcg2` (ABCG2) charges. For debugging large
 systems, the example runner can use faster temporary charge methods such as
 `--charge-method gas` or `--skip-am1-bcc`.
 

@@ -25,9 +25,9 @@ output_dir = Path("examples/output/md_tests/P3HB_4/gaff2")
 
 ## 2. Select the charge model deliberately
 
-The current code defaults to `charge_method="abcg2"`. Older notebook prose calls
-AM1-BCC the default; pass `charge_method="bcc"` explicitly if that is the protocol
-you intend. Faster/debug charge choices are not automatically interchangeable
+The default is `charge_method="abcg2"` (ABCG2). AM1-BCC (`charge_method="bcc"`)
+is also supported; the project's benchmark and enzyme–PHA research runs used
+`bcc`. Faster/debug charge choices are not automatically interchangeable
 with a validated production model.
 
 When ready to run the external tools:
@@ -36,7 +36,7 @@ When ready to run the external tools:
 outputs = parameterize_gaff2(
     input_sdf, output_dir,
     name="P3HB_4", residue_name="PHA",
-    net_charge=0, charge_method="bcc", verbose=True,
+    net_charge=0, charge_method="abcg2", verbose=True,
 )
 print(outputs.prmtop_path)
 print(outputs.inpcrd_path)
