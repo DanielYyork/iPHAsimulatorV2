@@ -2,7 +2,7 @@
 topology: /Users/k20098771/Data/MD_projects/PHA/MD_data/gromacs/PHA_Enzyme/GK13_P3HO_4_gromacs/step7_production.tpr
 trajectory: /Users/k20098771/Data/MD_projects/PHA/MD_data/gromacs/PHA_Enzyme/GK13_P3HO_4_gromacs/production_combined_1us.xtc
 # Relative paths are resolved against this YAML's directory.
-output_root: ../../examples/output/enzyme_contacts
+output_root: ../../../examples/output/enzyme_contacts
 label: GK13–P3HO_4
 protein_selection: protein
 # TPR: one LIG residue (resindex 245, resid 246, seg_1_LIG), 99 atoms,

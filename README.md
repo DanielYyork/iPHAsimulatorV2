@@ -347,8 +347,8 @@ are written under `examples/output/`, which is ignored by Git.
 ## Testing the Installation
 
 For the enzyme–PHA contact workflow, open
-[`md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb`](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb)
-or run `python md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml`.
+[`src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb`](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb)
+or run `python src/md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml`.
 This defaults to a labelled preview. Add `--full` for every configured sampled
 frame. Install the optional dependencies with `python -m pip install -e ".[analysis]"`
 if needed. See [configuration, verified inputs and validation](docs/enzyme_contacts.md)

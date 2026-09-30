@@ -42,9 +42,9 @@ For enzyme–PHA trajectory preparation, use the [standalone Bash templates](enz
 | [Six-system MD benchmark](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/10_batch_md_benchmark.ipynb) | {download}`10_batch_md_benchmark.ipynb <../notebooks/10_batch_md_benchmark.ipynb>` | Fixed workflow assumptions; import blockers |
 | [Docking preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/11_PHA_Enzyme_Docking.ipynb) | {download}`11_PHA_Enzyme_Docking.ipynb <../notebooks/11_PHA_Enzyme_Docking.ipynb>` | Manual; verify ligand-only input; benchmark import blocker |
 | [Enzyme/polymer stability](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/12_enzyme_polymer_stable_analysis.ipynb) | {download}`12_enzyme_polymer_stable_analysis.ipynb <../notebooks/12_enzyme_polymer_stable_analysis.ipynb>` | Energy and RMSD diagnostics; system-specific inputs |
-| [PHA–enzyme contacts](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb) | {download}`enzyme_contacts.ipynb <../md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb>` | Reusable, validated preview; matching TPR/XTC required |
+| [PHA–enzyme contacts](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb) | {download}`enzyme_contacts.ipynb <../src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb>` | Reusable, validated preview; matching TPR/XTC required |
 
-The two `01_APO_*` files in `md_simulation_scripts/` are currently empty
+The two `01_APO_*` files in `src/md_simulation_scripts/` are currently empty
 placeholders. They are preserved but are not runnable tutorials.
 
 ## Workflow order

@@ -17,7 +17,7 @@ from src.iphasimulator.openmmscript_builder import OpenMMScriptBuilder
 STRUCTURE_DATABASE = Path("structure_database")
 RESIDUE_CODES_CSV = STRUCTURE_DATABASE / "residue_codes.csv"
 
-MD_SCRIPT_DIR = Path("md_simulation_scripts")
+MD_SCRIPT_DIR = Path("src/md_simulation_scripts")
 MD_SCRIPT_DIR.mkdir(parents=True, exist_ok=True)
 
 AMBERTOOLS_PYTHON = Path.home() / "miniconda3/envs/AmberTools23/bin/python"

@@ -4,7 +4,7 @@ Trajectory preparation needs only **Bash and GROMACS**. The research analysis
 and enzyme-contact notebooks use Python analysis dependencies.
 
 ```text
-md_simulation_scripts/
+src/md_simulation_scripts/
 ├── README.md
 ├── trajectory_preparation/
 │   ├── process_trajectory.sh
@@ -181,10 +181,10 @@ paths are simplest; relative paths resolve against **this YAML's directory**.
 From the repository root:
 
 ```bash
-python md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml
+python src/md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml
 ```
 
-Or, from `md_simulation_scripts/enzyme_contacts/`:
+Or, from `src/md_simulation_scripts/enzyme_contacts/`:
 
 ```bash
 python run_enzyme_contacts.py GK13_P3HO_4.yaml
@@ -195,7 +195,7 @@ all configured samples; `--sample-interval-ns` controls time sampling. This Pyth
 interface is separate from the Bash `STRIDE`, which only controls the VMD file.
 The moved YAML preserves its original raw inputs and the ignored
 `examples/output/enzyme_contacts/` result location. Each contact run creates a
-new result directory. See [the contact guide](../docs/enzyme_contacts.md).
+new result directory. See [the contact guide](../../docs/enzyme_contacts.md).
 
 ## 6. Compare the four enzyme–PHA research systems
 

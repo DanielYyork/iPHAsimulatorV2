@@ -12,13 +12,13 @@ root, run the preview:
 
 ```bash
 cd /Users/k20098771/opt/iPHASimulator_v2
-/opt/homebrew/Caskroom/miniconda/base/envs/ipha_clean/bin/python md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml
+/opt/homebrew/Caskroom/miniconda/base/envs/ipha_clean/bin/python src/md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml
 ```
 
 Run the **full analysis** with:
 
 ```bash
-/opt/homebrew/Caskroom/miniconda/base/envs/ipha_clean/bin/python md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml --full
+/opt/homebrew/Caskroom/miniconda/base/envs/ipha_clean/bin/python src/md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml --full
 ```
 
 With the supplied YAML, full means both modes on all 14,806 stored frames over
@@ -26,7 +26,7 @@ With the supplied YAML, full means both modes on all 14,806 stored frames over
 `python -m iphasimulator.analysis_contacts CONFIG --full` is equivalent.
 
 Alternatively open
-[`md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb`](../md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb),
+[`src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb`](../src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb),
 select a kernel using the `ipha_clean` interpreter, set `PREVIEW_FRAMES = None`
 in its configuration cell, and run that cell and all following cells. The
 notebook defaults to a 31-frame preview. Both interfaces use the same package
@@ -38,7 +38,7 @@ and an appropriate kernel. No package installation was needed for validation.
 
 ## Configuration and sampling
 
-Edit [`md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml`](../md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml).
+Edit [`src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml`](../src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml).
 Relative paths are resolved against the YAML file's directory. The reusable
 module contains no simulation-specific paths or ligand-residue assumption.
 
@@ -222,7 +222,7 @@ inspected for axes, units, readable identities, shared distance scale, missing
 rows and occupancy limits.
 
 All seven notebook code cells were also executed sequentially and headlessly
-in `ipha_clean`, starting from `md_simulation_scripts/`, without substituting
+in `ipha_clean`, starting from `src/md_simulation_scripts/`, without substituting
 their source. The notebook produced a second fresh preview at
 `examples/output/enzyme_contacts/20260907T133200_068659Z_preview_154678c6/`;
 its frame indices and both distance matrices match the terminal preview exactly,

@@ -23,10 +23,10 @@ the percentage of sampled frames below each contact cutoff.
 5. Inspect `residue_summary.csv`, `distances.npz` and the saved provenance.
 
 For terminal runs, edit a copy of the
-{download}`contact configuration <../../md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml>`:
+{download}`contact configuration <../../src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml>`:
 
 ```bash
-python md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml
+python src/md_simulation_scripts/enzyme_contacts/run_enzyme_contacts.py src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml
 ```
 
 Add `--full` for all configured sampled frames. The original YAML uses

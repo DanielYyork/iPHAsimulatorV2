@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 
 # Support both repository-root and script-folder invocation in a source checkout.
-source = Path(__file__).resolve().parents[2] / "src"
+source = Path(__file__).resolve().parents[3] / "src"
 if str(source) not in sys.path:
     sys.path.insert(0, str(source))
 

@@ -11,8 +11,8 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PREPARATION = ROOT / 'md_simulation_scripts/trajectory_preparation'
-CONTACTS = ROOT / 'md_simulation_scripts/enzyme_contacts'
+PREPARATION = ROOT / 'src/md_simulation_scripts/trajectory_preparation'
+CONTACTS = ROOT / 'src/md_simulation_scripts/enzyme_contacts'
 
 
 @pytest.fixture
@@ -167,8 +167,8 @@ def test_contact_notebook_sources_and_relocated_paths():
         if cell['cell_type'] == 'code':
             compile(''.join(cell['source']), 'enzyme_contacts.ipynb', 'exec')
     source = '\n'.join(''.join(c['source']) for c in notebook['cells'])
-    assert 'md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml' in source
+    assert 'src/md_simulation_scripts/enzyme_contacts/GK13_P3HO_4.yaml' in source
     assert 'examples/enzyme_contacts_GK13_P3HO_4.yaml' not in source
-    assert (CONTACTS / '../../docs/enzyme_contacts.md').resolve().is_file()
-    assert not (ROOT / 'md_simulation_scripts/01_GK13_PHO4_trajactory_process.ipynb').exists()
+    assert (CONTACTS / '../../../docs/enzyme_contacts.md').resolve().is_file()
+    assert not (ROOT / 'src/md_simulation_scripts/01_GK13_PHO4_trajactory_process.ipynb').exists()
     assert not (ROOT / 'examples/enzyme_trajectory_GK13_P3HO_4.yaml').exists()
