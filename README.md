@@ -20,6 +20,10 @@ files, prepares Amber/GAFF2 and GROMACS/OpenMM simulation inputs, supports HPC
 execution patterns, and provides early analysis and PHA-enzyme docking
 preparation notebooks.
 
+This software has been developed by King's College London under the frame of SATISPHACTION project (https://satisphaction.eu/). 
+SATISPHACTION is a 4-year project awarded in 2025 under the highly competitive EIC Pathfinder Challenge call “Nature-inspired alternatives for food packaging and films for agriculture”. 
+It focuses on developing next-generation, fully biodegradable PHA-based materials for food packaging that replace fossil-based plastics and promote circular economy.
+
 ## Launch the GUI
 
 From the repository root, launch the Streamlit interface with:
@@ -483,4 +487,11 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 
 Citation information will be added before publication or formal release. Until
 then, please cite the repository URL and acknowledge the iPHASimulator v2
-development team when using this software in research outputs.
+development team and SATISPHACTION project funding (EIC Pathfinder) when using this software in research outputs.
+
+Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union, European Innovation Council and SMEs Executive Agency (EISMEA). 
+Neither the European Union nor the granting authority can be held responsible for them
+
+<p align="center">
+  <img src="docs/EIC_EUfundedflag.jpg" alt="EIC_EUfundedflag" width="400"/>
+</p>
