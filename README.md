@@ -420,8 +420,8 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 | `04_export_structures.ipynb` | Export validated oligomers to structure files. | PDB/SDF files in `examples/output/polymer_structures/`. |
 | `05A_amber_gaff2_parameterisation.ipynb` | Run AmberTools/GAFF2 parameterisation. | `prmtop`, `inpcrd`, GAFF2 `mol2`/`frcmod`, and logs under `examples/output/md_tests/<SYSTEM>/gaff2/`. |
 | `05B_charmm_cgenff_parameterisation.ipynb` | Document CHARMM/CGenFF parameterisation handoff. | In-progress CHARMM/CGenFF preparation notes. |
-| `06A_amber_openmm_system.ipynb` | Route A systems: §1 dry OpenMM check of GAFF2-derived AMBER files (§2/§3 to come). | Dry OpenMM outputs under `examples/output/md_tests/<SYSTEM>/openmm/dry_polymer/`. |
-| `archive/` (old 06B, 06C, 06D) | Hybrid GAFF2 → GROMACS route with CHARMM-style TIP3P/SOD/CLA, kept for provenance. | The polymer-only benchmark systems and the P3HB_4_01 example trajectory used in 08/09. |
+| `06A_openmm_dry_polymer.ipynb` | Route A: dry OpenMM check of GAFF2-derived AMBER files. | Dry OpenMM outputs under `examples/output/md_tests/<SYSTEM>/openmm/dry_polymer/`. |
+| `archive/hybrid_06*` | Hybrid GAFF2 → GROMACS route with CHARMM-style TIP3P/SOD/CLA, kept for provenance. | The polymer-only benchmark systems and the P3HB_4_01 example trajectory used in 08/09. |
 | `07_hpc_workflows.ipynb` | Prepare and document local/HPC staged execution. | SLURM scripts, restart guidance, and benchmark execution notes. |
 | `08_trajectory_preprocessing.ipynb` | Reconstruct, center, wrap, and optionally fit GROMACS trajectories. | `step7_centered.xtc`, optional `step7_fitted.xtc`, and representative frames. |
 | `09_basic_polymer_analysis.ipynb` | Run basic polymer trajectory analysis. | Analysis tables and plots for metrics such as radius of gyration and SASA. |
@@ -456,8 +456,8 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 
 4. Run the relevant MD notebook for the route being tested:
 
-   - `06A_amber_openmm_system.ipynb` for dry OpenMM validation.
-   - `notebooks/archive/` 06B/06C: archived hybrid GROMACS route (used for the benchmark and the P3HB_4_01 example).
+   - `06A_openmm_dry_polymer.ipynb` for dry OpenMM validation.
+   - `notebooks/archive/` hybrid_06B/hybrid_06C: archived hybrid GROMACS route (used for the benchmark and the P3HB_4_01 example).
 
 5. For production-style GROMACS trajectories, continue with:
 
