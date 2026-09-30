@@ -21,7 +21,7 @@ polymer to protein to water and ions, so parameters from the two families are ne
 | Engine | OpenMM | GROMACS |
 | Parameters | `05A_amber_gaff2_parameterisation.ipynb` | `05B_charmm_cgenff_parameterisation.ipynb` |
 | Dry polymer check | `06A_openmm_dry_polymer.ipynb` | `06C_gromacs_dry_polymer.ipynb` |
-| Solvated system (polymer in water; polymer + protein) | `06B_openmm_solvated_system.ipynb` (planned) | `06D_gromacs_solvated_system.ipynb` |
+| Solvated system (polymer in water; polymer + protein) | `06B_openmm_solvated_system.ipynb` | `06D_gromacs_solvated_system.ipynb` |
 | HPC | `07_hpc_workflows.ipynb`, Route A section | `07_hpc_workflows.ipynb`, Route C section |
 
 The enzyme–PHA production simulations (GK13/ANC45 × P3HO_4/P3HB_4) used **Route C**.
@@ -60,7 +60,7 @@ Route A (Amber / OpenMM):
 
 5. `05A_amber_gaff2_parameterisation.ipynb`: AmberTools GAFF2 parameterisation (ABCG2 charges by default).
 6. `06A_openmm_dry_polymer.ipynb`: dry (vacuum) OpenMM check of the GAFF2 polymer. A sanity check, not a physical result.
-7. `06B_openmm_solvated_system.ipynb` (planned): polymer in OPC water via tleap, optionally with an ff19SB protein; short OpenMM test.
+7. `06B_openmm_solvated_system.ipynb`: polymer in OPC water via tleap, optionally with a posed ff19SB protein; short OpenMM test (minimise, 10 ps NVT, 10 ps NPT) and restartable production files for HPC.
 
 Route C (CHARMM / GROMACS):
 
