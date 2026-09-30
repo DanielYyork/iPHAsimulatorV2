@@ -37,17 +37,21 @@ as skipped for nonperiodic input. Review stage logs, the final structure and
 `openmm_summary.log` before increasing the run length. These short settings are
 for a smoke test, not equilibration or convergence evidence.
 
-**Native solvated OpenMM (06D) is a disabled template.** Its model construction
-depends on a force field that covers both the PHA and water; it is not a finished
-automatic solvation route.
+**Solvated OpenMM (Route A) is notebook 06B.** It builds the GAFF2 polymer in OPC
+water with tleap (optionally with a posed ff19SB protein) and runs a short OpenMM
+test. The older native-OpenMM template (`archive/hybrid_06D`) stays disabled.
 
-## GROMACS: convert and prepare
+## GROMACS: convert and prepare (archived hybrid route)
 
-1. In **06B**, use the converter/preparation helpers to convert AMBER parameters
+For Route C (CHARMM-GUI / CGenFF), use notebooks **06C** (dry polymer) and **06D**
+(Solution Builder package) instead. The steps below are the archived GAFF2 → GROMACS
+route that produced the polymer-only benchmark.
+
+1. In archived **hybrid_06B**, use the converter/preparation helpers to convert AMBER parameters
    with ParmEd and create a self-contained dry run folder.
 2. Validate topology includes, atom counts and the box relative to nonbonded
    cutoffs before any `grompp`/minimisation run.
-3. In **06C**, generate the explicit-water/ion preparation scripts from the dry
+3. In archived **hybrid_06C**, generate the explicit-water/ion preparation scripts from the dry
    inputs. Review solvent group names and force-field/water compatibility.
 4. Run the generated solvation script deliberately, then check coordinate and
    topology atom counts and solvent/ion molecule counts.
