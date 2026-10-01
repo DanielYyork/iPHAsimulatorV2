@@ -549,6 +549,29 @@ def read_cgenff_version(path: str | Path) -> tuple[str | None, str | None]:
     return program, files
 
 
+def check_cgenff_penalties(lig_dir: str | Path | None) -> CheckResult:
+    """CGenFF parameter and charge penalties from ``lig/``: PASS < 10, WARN 10-50, FAIL > 50."""
+
+    name = "CGenFF penalties (param / charge)"
+    if lig_dir is None:
+        return CheckResult(name, "SKIP", "no lig/ folder given")
+    try:
+        report = read_cgenff_penalties(lig_dir)
+    except FileNotFoundError as exc:
+        return CheckResult(name, "SKIP", str(exc))
+    values = (report.max_parameter_penalty, report.max_charge_penalty)
+    if any(value is None for value in values):
+        return CheckResult(name, "FAIL", f"no penalties found in {', '.join(report.files_read)}")
+    worst = max(values)
+    status = "PASS" if worst < 10 else "WARN" if worst <= 50 else "FAIL"
+    return CheckResult(
+        name,
+        status,
+        f"{values[0]:g} / {values[1]:g} ({penalty_category(worst)}); CGenFF program "
+        f"{report.program_version or '?'}, files {report.parameter_files_version or '?'}",
+    )
+
+
 def check_ligand_charges_match_rtf(
     topology_path: str | Path,
     rtf_path: str | Path | None,

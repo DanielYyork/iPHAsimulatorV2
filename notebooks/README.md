@@ -64,7 +64,7 @@ Quick run, PHA in water:
 Enzyme systems:
 
 7. `05B_charmm_cgenff_parameters.ipynb`: PHA CGenFF parameters from the CHARMM-GUI website (Ligand Reader & Modeler), and the Solution Builder handoff.
-8. `06B_cgenff_gromacs_pha_enzyme_in_water.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package for PHA + enzyme in water, as used for the enzyme–PHA production runs.
+8. `06B_cgenff_gromacs_pha_enzyme_in_water.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package for PHA + enzyme in water, as used for the enzyme–PHA production runs. Without inputs it runs on the example dataset `examples/data/charmm_gui_ANC55_P3HB4/` (ANC55 + P3HB4).
 
 Optional, another way for enzyme systems:
 

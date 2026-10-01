@@ -1,6 +1,7 @@
 import pytest
 
 from iphasimulator.charmmgui_import import (
+    check_cgenff_penalties,
     format_cgenff_penalty_report,
     penalty_category,
     read_cgenff_penalties,
@@ -98,3 +99,16 @@ def test_format_cgenff_penalty_report_mentions_maxima(lig_dir):
     assert "CGenFF program 4.0; topology/parameter files 5.0" in text
     assert "Max charge penalty: 3.529 (fair analogy)" in text
     assert "Max parameter penalty: 12.5 (basic validation recommended)" in text
+
+
+def test_check_cgenff_penalties_warns_between_10_and_50(lig_dir):
+    result = check_cgenff_penalties(lig_dir)
+
+    assert result.status == "WARN"
+    assert result.passed
+    assert "12.5 / 3.529" in result.evidence
+
+
+def test_check_cgenff_penalties_skips_without_lig_folder(tmp_path):
+    assert check_cgenff_penalties(None).status == "SKIP"
+    assert check_cgenff_penalties(tmp_path).status == "SKIP"
