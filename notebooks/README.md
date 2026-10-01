@@ -22,7 +22,7 @@ polymer to protein to water and ions, so parameters from the two families are ne
 | Parameters | `05A_amber_gaff2_parameters.ipynb` | `05B_charmm_cgenff_parameters.ipynb` |
 | Polymer without solvent (quick check) | `06A1_amber_openmm_vacuum_check.ipynb` | §0 of `06B1_charmm_gromacs_polymer_in_water.ipynb` |
 | Polymer in water | `06A2_amber_openmm_solvated_system.ipynb` (without `PROTEIN_PDB`) | `06B1_charmm_gromacs_polymer_in_water.ipynb` |
-| Enzyme + polymer in water | `06A2_amber_openmm_solvated_system.ipynb` (with `PROTEIN_PDB`) | `06B2_charmm_gromacs_solvated_system.ipynb` |
+| Enzyme + polymer in water | `06A2_amber_openmm_solvated_system.ipynb` (with `PROTEIN_PDB`) | `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb` |
 | HPC | `07_hpc_execution.ipynb`, OpenMM section | `07_hpc_execution.ipynb`, GROMACS section |
 
 The enzyme–PHA production simulations (GK13/ANC45 × P3HO_4/P3HB_4) used the **CHARMM/GROMACS** route.
@@ -65,7 +65,7 @@ CHARMM/GROMACS:
 
 8. `05B_charmm_cgenff_parameters.ipynb`: CGenFF parameters through CHARMM-GUI Ligand Reader & Modeler and the Solution Builder handoff.
 9. `06B1_charmm_gromacs_polymer_in_water.ipynb`: the CGenFF polymer in CHARMM TIP3P water with SOD/CLA, built locally from a Ligand Reader download with the same layout and protocol as the polymer-only benchmark (CHARMM non-bonded settings). §0 is an optional check without solvent.
-10. `06B2_charmm_gromacs_solvated_system.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package for enzyme + polymer in water, as used for the enzyme–PHA runs.
+10. `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package for enzyme + polymer in water, as used for the enzyme–PHA runs.
 
 Execution and analysis:
 

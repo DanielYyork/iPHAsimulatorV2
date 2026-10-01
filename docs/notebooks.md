@@ -28,7 +28,7 @@ apply even if a notebook contains historical successful output.
 | [Amber/OpenMM vacuum check](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06A1_amber_openmm_vacuum_check.ipynb) | {download}`06A1_amber_openmm_vacuum_check.ipynb <../notebooks/06A1_amber_openmm_vacuum_check.ipynb>` | AMBER runner; import blocker |
 | [Amber/OpenMM solvated system](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06A2_amber_openmm_solvated_system.ipynb) | {download}`06A2_amber_openmm_solvated_system.ipynb <../notebooks/06A2_amber_openmm_solvated_system.ipynb>` | AmberTools tleap + OpenMM; run flags off by default |
 | [CHARMM/GROMACS polymer in water](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06B1_charmm_gromacs_polymer_in_water.ipynb) | {download}`06B1_charmm_gromacs_polymer_in_water.ipynb <../notebooks/06B1_charmm_gromacs_polymer_in_water.ipynb>` | CHARMM-GUI Ligand Reader download; GROMACS box build; run flags off by default |
-| [CHARMM/GROMACS solvated system](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06B2_charmm_gromacs_solvated_system.ipynb) | {download}`06B2_charmm_gromacs_solvated_system.ipynb <../notebooks/06B2_charmm_gromacs_solvated_system.ipynb>` | CHARMM-GUI Solution Builder download; GROMACS optional |
+| [CHARMM/GROMACS enzyme + polymer in water](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb) | {download}`06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb <../notebooks/06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb>` | CHARMM-GUI Solution Builder download; GROMACS optional |
 
 ## Execution and analysis
 
