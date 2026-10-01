@@ -37,20 +37,19 @@ as skipped for nonperiodic input. Review stage logs, the final structure and
 `openmm_summary.log` before increasing the run length. These short settings are
 for a smoke test, not equilibration or convergence evidence.
 
-**Solvated OpenMM with Amber force fields is notebook 06A2 (enzyme + polymer in
+**Solvated OpenMM with Amber force fields is notebook 06_optional (enzyme + polymer in
 water).** It builds the system in OPC water with tleap (ff19SB for the protein) and
-writes staged OpenMM run files whose protocol matches the GROMACS notebook 06B2.
+writes staged OpenMM run files whose protocol matches the GROMACS notebook 06B.
 
 ## GROMACS with CHARMM-GUI inputs
 
-For CGenFF/CHARMM36m systems prepared in CHARMM-GUI, use notebooks **06B1** (polymer
-in water, built from a Ligand Reader & Modeler download) and **06B2** (enzyme + polymer,
+For CGenFF/CHARMM36m systems prepared in CHARMM-GUI, use notebook **06B** (enzyme + PHA,
 Solution Builder package).
 
 ## GROMACS from GAFF2/AMBER files (conversion helpers)
 
 The package can also convert GAFF2/AMBER files to GROMACS; the polymer-only benchmark
-systems were prepared this way, and notebook **06A1** runs these steps for one system.
+systems were prepared this way, and notebook **06A** runs these steps for one system.
 
 1. Use the converter/preparation helpers to convert AMBER parameters
    with ParmEd and create a self-contained dry run folder.
@@ -68,7 +67,7 @@ contains a CHARMM-GUI-style staged workflow; that is distinct from an automated
 enzyme-complex builder. Solvation scripts reset intermediate files in their
 target folder, so keep original inputs and use a dedicated workflow folder.
 
-Notebook links: [06A1–06B2](../notebooks.md#parameterisation-and-simulation).
+Notebook links: [06A–06B](../notebooks.md#parameterisation-and-simulation).
 API: {py:func}`iphasimulator.conversion_amber_to_gromacs.convert_amber_to_gromacs`,
 {py:func}`iphasimulator.simulation_gromacs_runner.prepare_gromacs_run_folder`,
 {py:func}`iphasimulator.simulation_gromacs_runner.validate_gromacs_coordinate_topology_counts`.

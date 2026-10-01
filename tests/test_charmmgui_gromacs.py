@@ -327,7 +327,7 @@ def test_prepared_run_folder_is_writable_when_download_is_read_only(tmp_path):
             path.chmod(0o644)
 
 
-# --- CGenFF polymer in water, solvated locally like the benchmark (06B1) ---
+# --- CGenFF polymer in water, solvated locally like the benchmark (library helpers) ---
 
 from iphasimulator.charmmgui_import import (  # noqa: E402
     CHARMM_POLYMER_TEMPLATE_DIR,

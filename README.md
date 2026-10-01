@@ -420,10 +420,9 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 | `04_export_structures.ipynb` | Export validated oligomers to structure files. | PDB/SDF files in `examples/output/polymer_structures/`. |
 | `05A_amber_gaff2_parameters.ipynb` | Run AmberTools/GAFF2 parameterisation. | `prmtop`, `inpcrd`, GAFF2 `mol2`/`frcmod`, and logs under `examples/output/md_tests/<SYSTEM>/gaff2/`. |
 | `05B_charmm_cgenff_parameters.ipynb` | Document CHARMM/CGenFF parameterisation handoff. | In-progress CHARMM/CGenFF preparation notes. |
-| `06A1_gaff2_gromacs_pha_in_water.ipynb` | Convert the 05A GAFF2 PHA to GROMACS (ParmEd) and add CHARMM-style TIP3P water with SOD/CLA: the polymer benchmark method. | `gromacs/dry_polymer/` and `gromacs/solvated_polymer/` with `step5_input.gro`, `topol.top`, mdp files and run scripts. |
-| `06A2_amber_openmm_enzyme_polymer_in_water.ipynb` | Build an enzyme + polymer complex (ff19SB + GAFF2, from the docked complex PDB) in OPC water and prepare staged OpenMM MD with the enzyme-run protocol. | Posed polymer mol2, protein PDB, `system.prmtop`/`system.inpcrd` and the same run files. |
-| `06B1_charmm_gromacs_polymer_in_water.ipynb` | Build a CGenFF polymer in CHARMM TIP3P water with SOD/CLA (GROMACS), like the polymer-only benchmark, from a CHARMM-GUI Ligand Reader & Modeler download. | `dry_polymer/` and `solvated_polymer/` with `step5_input.gro`, `topol.top`, mdp files, scripts and PASS/FAIL checks. |
-| `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb` | Prepare and check a CHARMM-GUI Solution Builder GROMACS package of an enzyme + polymer complex in water. | A GROMACS run folder with `step6.x`/`step7` files and PASS/FAIL checks. |
+| `06A_gaff2_gromacs_pha_in_water.ipynb` | Convert the 05A GAFF2 PHA to GROMACS (ParmEd) and add CHARMM-style TIP3P water with SOD/CLA: the polymer benchmark method. | `gromacs/dry_polymer/` and `gromacs/solvated_polymer/` with `step5_input.gro`, `topol.top`, mdp files and run scripts. |
+| `06B_cgenff_gromacs_pha_enzyme_in_water.ipynb` | Prepare and check a CHARMM-GUI Solution Builder GROMACS package of an enzyme + polymer complex in water. | A GROMACS run folder with `step6.x`/`step7` files and PASS/FAIL checks. |
+| `06_optional_gaff2_openmm_pha_enzyme_in_water.ipynb` | Build an enzyme + polymer complex (ff19SB + GAFF2, from the docked complex PDB) in OPC water and prepare staged OpenMM MD with the enzyme-run protocol. | Posed polymer mol2, protein PDB, `system.prmtop`/`system.inpcrd` and the same run files. |
 | `07_hpc_execution.ipynb` | Prepare and document local/HPC staged execution. | SLURM scripts, restart guidance, and benchmark execution notes. |
 | `08_trajectory_preprocessing.ipynb` | Reconstruct, center, wrap, and optionally fit GROMACS trajectories. | `step7_centered.xtc`, optional `step7_fitted.xtc`, and representative frames. |
 | `09_solvated_polymer_analysis.ipynb` | Run basic polymer trajectory analysis. | Analysis tables and plots for metrics such as radius of gyration and SASA. |
@@ -459,8 +458,7 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 
 4. Run the relevant MD notebook for the route being tested:
 
-   - `06A1_gaff2_gromacs_pha_in_water.ipynb` for the PHA in water with GROMACS (the polymer benchmark method).
-   - `06B1_charmm_gromacs_polymer_in_water.ipynb` for the CGenFF polymer in CHARMM TIP3P water with GROMACS.
+   - `06A_gaff2_gromacs_pha_in_water.ipynb` for the PHA in water with GROMACS (the polymer benchmark method).
 
 5. For production-style GROMACS trajectories, continue with:
 

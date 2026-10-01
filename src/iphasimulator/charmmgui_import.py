@@ -185,7 +185,7 @@ def _leading_float(text: str) -> float | None:
 
 
 # ---------------------------------------------------------------------------
-# CHARMM-GUI GROMACS systems (notebooks 06B1 and 06B2)
+# CHARMM-GUI GROMACS systems (notebook 06B)
 # ---------------------------------------------------------------------------
 
 CHARMM_GROMACS_TEMPLATE_DIR = Path(__file__).resolve().parent / "data" / "charmm_gromacs"
@@ -764,7 +764,7 @@ def read_minimization_result(log_path: str | Path) -> MinimizationResult:
 
 
 # ---------------------------------------------------------------------------
-# CGenFF polymer in water, solvated locally like the polymer benchmark (06B1)
+# CGenFF polymer in water, solvated locally like the polymer benchmark (library helpers; no notebook)
 # ---------------------------------------------------------------------------
 
 CHARMM_POLYMER_TEMPLATE_DIR = Path(__file__).resolve().parent / "data" / "charmm_gromacs_polymer"

@@ -1,8 +1,8 @@
 """Amber/OpenMM solvated systems: tleap (GAFF2 + OPC, optional ff19SB) and staged OpenMM MD.
 
 The MD protocols mirror the CHARMM/GROMACS references: POLYMER_IN_WATER_PROTOCOL
-follows the polymer benchmark (notebook 06B1) and ENZYME_POLYMER_IN_WATER_PROTOCOL
-the enzyme–polymer production runs (06B2); only the non-bonded settings are
+follows the polymer benchmark (notebook 06A) and ENZYME_POLYMER_IN_WATER_PROTOCOL
+the enzyme–polymer production runs (notebook 06B); only the non-bonded settings are
 Amber's. ``tleap`` and OpenMM run only when a ``build_``/``run_`` function or the
 generated ``run_openmm_md.py`` is called; everything else writes text files.
 """
@@ -101,7 +101,7 @@ class OpenMMProtocol:
     sidechain_restraint: float = 0.0
 
 
-# Polymer benchmark / 06B1: 300 K, no restraints, 100 ps NVT, 500 ps NPT, 100 ns, frames every 2 ps.
+# Polymer benchmark (06A): 300 K, no restraints, 100 ps NVT, 500 ps NPT, 100 ns, frames every 2 ps.
 POLYMER_IN_WATER_PROTOCOL = OpenMMProtocol(
     name="polymer_in_water",
     temperature_kelvin=300.0,
@@ -114,7 +114,7 @@ POLYMER_IN_WATER_PROTOCOL = OpenMMProtocol(
     production_frame_ps=2.0,
 )
 
-# Enzyme–polymer production runs / 06B2: 303.15 K, restraints (N/CA/C/O and polymer
+# Enzyme–polymer production runs / 06B: 303.15 K, restraints (N/CA/C/O and polymer
 # heavy atoms 400, other protein heavy atoms 40) during minimisation, NVT and NPT,
 # 125 ps NVT at 1 fs, 500 ps NPT, 200 ns, frames every 100 ps.
 ENZYME_POLYMER_IN_WATER_PROTOCOL = OpenMMProtocol(

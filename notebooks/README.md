@@ -7,45 +7,45 @@ iPHASimulator v2 serves two purposes:
 1. **A package** that builds PHA oligomers with RDKit and prepares molecular dynamics (MD) systems from them.
 2. **The author's research**: MD of enzyme + PHA systems.
 
-The notebooks follow one shared build stage (01–04), then parameterise the PHA with
-GAFF2 (05A) or CGenFF (05B) and build MD systems from those parameters (06).
+## Where to start
+
+1. Build and export the PHA with **01–04**.
+2. **Quick run (PHA in water):** run **05A** first (GAFF2 parameters with AmberTools), then **06A**.
+3. **Enzyme systems:** go to **05B** (CGenFF parameters from the CHARMM-GUI website), then **06B**.
+4. **06_optional** is another way to build the enzyme system, using OpenMM (needs 05A).
+5. Submit long runs with **07**, then analyse with **08–12**.
+
+```mermaid
+flowchart LR
+    S["01–04<br/>build / validate / export"]
+    S --> A5["05A PHA GAFF2 parameters<br/>(AmberTools)"]
+    S --> B5["05B PHA CGenFF parameters<br/>(CHARMM-GUI website)"]
+    A5 --> A6["06A PHA (GAFF2) in water<br/>GROMACS · quick run"]
+    B5 --> B6["06B PHA (CGenFF) + enzyme in water<br/>GROMACS"]
+    A5 -.-> O6["06_optional PHA (GAFF2) + enzyme in water<br/>OpenMM"]
+    A6 --> H["07 HPC execution"]
+    B6 --> H
+    O6 -.-> H
+    H --> X["08–12 analysis and tools"]
+```
 
 ## System notebooks and their force fields
 
 | Notebook | System | PHA | Protein | Water / ions | Engine |
 | --- | --- | --- | --- | --- | --- |
-| `06A1_gaff2_gromacs_pha_in_water.ipynb` | PHA in water (polymer benchmark method) | GAFF2 (05A) | – | CHARMM-style TIP3P + SOD/CLA | GROMACS |
-| `06A2_amber_openmm_enzyme_polymer_in_water.ipynb` | enzyme + PHA in water | GAFF2 (05A) | ff19SB | OPC + Na⁺/Cl⁻ | OpenMM |
-| `06B1_charmm_gromacs_polymer_in_water.ipynb` | PHA in water | CGenFF (05B) | – | CHARMM TIP3P + SOD/CLA | GROMACS |
-| `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb` | enzyme + PHA in water (production runs) | CGenFF (05B) | CHARMM36m | CHARMM TIP3P + SOD/CLA | GROMACS |
+| `06A_gaff2_gromacs_pha_in_water.ipynb` | PHA in water (polymer benchmark method) | GAFF2 (05A) | – | CHARMM-style TIP3P + SOD/CLA | GROMACS |
+| `06B_cgenff_gromacs_pha_enzyme_in_water.ipynb` | PHA + enzyme in water (production runs) | CGenFF (05B) | CHARMM36m | CHARMM TIP3P + SOD/CLA | GROMACS |
+| `06_optional_gaff2_openmm_pha_enzyme_in_water.ipynb` | PHA + enzyme in water (another way) | GAFF2 (05A) | ff19SB | OPC + Na⁺/Cl⁻ | OpenMM |
 
-06A1 reproduces the method of the finished polymer-only benchmark (`examples/output/benchmark/`,
+06A reproduces the method of the finished polymer-only benchmark (`examples/output/benchmark/`,
 notebook 10): the GAFF2 PHA is converted to GROMACS with ParmEd and solvated with the packaged
-CHARMM-style water and ion files, so its PHA force field (GAFF2) differs from the enzyme
-production runs (06B2, CGenFF). HPC submission for all four is in `07_hpc_execution.ipynb`.
+CHARMM-style water and ion files. Its PHA force field (GAFF2) therefore differs from the enzyme
+production runs (06B, CGenFF).
 
-The enzyme–PHA production simulations (GK13/ANC45 × P3HO_4/P3HB_4) used the **CHARMM/GROMACS** route.
+The enzyme–PHA production simulations (GK13/ANC45 × P3HO_4/P3HB_4) used **06B**.
 Their input structures were iPHASimulator's R-configured SDF/PDB files (for example
 `PHB4_R.sdf`); CGenFF assigned all atom types, charges and parameters, so no GAFF2
 charges enter them.
-
-```mermaid
-flowchart LR
-    S["01–04<br/>build / validate / export"]
-    S --> A5
-    S --> B5
-    subgraph GA["GAFF2 PHA (05A)"]
-        A5["05A Amber/GAFF2 parameters"] --> A61["06A1 PHA in water<br/>(GROMACS, benchmark method)"]
-        A5 --> A62["06A2 enzyme + PHA in water<br/>(ff19SB, OPC, OpenMM)"]
-    end
-    subgraph CG["CGenFF PHA (05B), CHARMM/GROMACS"]
-        B5["05B CHARMM/CGenFF parameters"] --> B61["06B1 polymer in water"] --> B62["06B2 enzyme + polymer in water"]
-    end
-    A61 --> H["07 HPC execution"]
-    A62 --> H
-    B62 --> H
-    H --> X["08–12 analysis and tools"]
-```
 
 ## Run order
 
@@ -56,26 +56,28 @@ Shared build stage:
 3. `03_validate_structures.ipynb`: validate generated oligomers and inspect structures.
 4. `04_export_structures.ipynb`: export validated oligomers to SDF/PDB.
 
-GAFF2 PHA (Amber parameters):
+Quick run, PHA in water:
 
-5. `05A_amber_gaff2_parameters.ipynb`: AmberTools GAFF2 parameters (ABCG2 charges by default).
-6. `06A1_gaff2_gromacs_pha_in_water.ipynb`: PHA in water, the polymer benchmark method: ParmEd conversion to GROMACS, CHARMM-style TIP3P + SOD/CLA (1.2 nm padding, 0.15 M), and the step6.0–step7 run files.
-7. `06A2_amber_openmm_enzyme_polymer_in_water.ipynb`: enzyme + polymer in OPC water from the same docked complex PDB as 06B2 (ff19SB + GAFF2, tleap), with the enzyme-run protocol in OpenMM.
+5. `05A_amber_gaff2_parameters.ipynb`: PHA GAFF2 parameters with AmberTools (ABCG2 charges by default). **Run this first.**
+6. `06A_gaff2_gromacs_pha_in_water.ipynb`: PHA in water, the polymer benchmark method: ParmEd conversion to GROMACS, CHARMM-style TIP3P + SOD/CLA (1.2 nm padding, 0.15 M), and the step6.0–step7 run files.
 
-CHARMM/GROMACS:
+Enzyme systems:
 
-8. `05B_charmm_cgenff_parameters.ipynb`: CGenFF parameters through CHARMM-GUI Ligand Reader & Modeler and the Solution Builder handoff.
-9. `06B1_charmm_gromacs_polymer_in_water.ipynb`: PHA in water with the same steps as 06A1 (box, CHARMM TIP3P + SOD/CLA, run files, benchmark protocol), but with the CGenFF PHA from a Ligand Reader download and CHARMM non-bonded settings.
-10. `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package for enzyme + polymer in water, as used for the enzyme–PHA runs.
+7. `05B_charmm_cgenff_parameters.ipynb`: PHA CGenFF parameters from the CHARMM-GUI website (Ligand Reader & Modeler), and the Solution Builder handoff.
+8. `06B_cgenff_gromacs_pha_enzyme_in_water.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package for PHA + enzyme in water, as used for the enzyme–PHA production runs.
+
+Optional, another way for enzyme systems:
+
+9. `06_optional_gaff2_openmm_pha_enzyme_in_water.ipynb`: PHA (GAFF2, from 05A) + enzyme (ff19SB) in OPC water with OpenMM, starting from the same docked complex PDB as 06B and using the same MD protocol.
 
 Execution and analysis:
 
-11. `07_hpc_execution.ipynb`: HPC execution, SLURM submission, restart continuation, benchmarking and performance tuning; OpenMM and GROMACS sections.
-12. `08_trajectory_preprocessing.ipynb`: GROMACS trajectory preprocessing: PBC reconstruction, centering with reusable `[ center ]` index groups, compact wrapping, optional fitting and representative frames.
-13. `09_solvated_polymer_analysis.ipynb`: Rg, end-to-end distance and SASA of a solvated polymer from the centered trajectory.
-14. `10_polymer_benchmark_batch.ipynb`: launcher and progress checker for the six-system polymer-only benchmark (the 06A1 method, run for six systems).
-15. `11_enzyme_docking_setup.ipynb`: prepares PHA oligomer PDB inputs and job notes for manual HADDOCK docking.
-16. `12_enzyme_polymer_analysis.ipynb`: stability diagnostics for one enzyme–polymer GROMACS production run (total energy, protein backbone RMSD, polymer RMSD relative to the protein).
+10. `07_hpc_execution.ipynb`: HPC execution, SLURM submission, restart continuation, benchmarking and performance tuning; GROMACS (06A, 06B) and OpenMM (06_optional) sections.
+11. `08_trajectory_preprocessing.ipynb`: GROMACS trajectory preprocessing: PBC reconstruction, centering with reusable `[ center ]` index groups, compact wrapping, optional fitting and representative frames.
+12. `09_solvated_polymer_analysis.ipynb`: Rg, end-to-end distance and SASA of a solvated polymer from the centered trajectory.
+13. `10_polymer_benchmark_batch.ipynb`: launcher and progress checker for the six-system polymer-only benchmark (the 06A method, run for six systems).
+14. `11_enzyme_docking_setup.ipynb`: prepares PHA oligomer PDB inputs and job notes for manual HADDOCK docking.
+15. `12_enzyme_polymer_analysis.ipynb`: stability diagnostics for one enzyme–polymer GROMACS production run (total energy, protein backbone RMSD, polymer RMSD relative to the protein).
 
 The example data in 08/09 (P3HB_4_01) and the six benchmark systems in 10 were
 parameterised with GAFF2/AM1-BCC and solvated in GROMACS with CHARMM-style

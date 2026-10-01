@@ -1,7 +1,7 @@
 # CHARMM/GROMACS polymer-in-water run templates
 
 mdp files for a CGenFF (CHARMM) PHA oligomer solvated locally in CHARMM TIP3P water
-with SOD/CLA ions (notebook 06B1). They follow the GAFF2 polymer benchmark protocol
+with SOD/CLA ions (`prepare_charmm_polymer_water_folder`; no notebook uses it at present). They follow the GAFF2 polymer benchmark protocol
 (`../gromacs_mdp/`, used for `examples/output/benchmark/`) so results are comparable;
 only the non-bonded block differs, because CGenFF/CHARMM36 require CHARMM settings.
 
