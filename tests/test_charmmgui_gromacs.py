@@ -461,3 +461,88 @@ def test_charmm_polymer_folder_in_two_steps_matches_one_step(tmp_path):
         write_charmm_polymer_solvation_files(dry.parent)
     with pytest.raises(FileNotFoundError, match="dry_polymer"):
         write_charmm_polymer_solvation_files(tmp_path / "empty")
+
+
+# --- 06B checks: lig.rtf charges, signed volumes, mdp lengths, SLURM comments ---
+
+from iphasimulator.charmmgui_import import (  # noqa: E402
+    annotate_slurm_stage_lengths,
+    check_ligand_charges_match_rtf,
+    check_ligand_signed_volumes,
+    describe_run_folder_protocol,
+    read_cgenff_version,
+    read_mdp_stage,
+)
+
+
+def _rtf_from_itp(itp_path, rtf_path, change=None):
+    from iphasimulator.charmmgui_import import read_topology_molecules
+
+    molecule = read_topology_molecules(itp_path)["LIG"]
+    lines = ["* CHARMM General Force Field (CGenFF) program version 4.0",
+             "* For use with CGenFF topology and parameter files version 5.0", "*", "RESI lig 0.000"]
+    for atom in molecule.atoms:
+        charge = atom.charge + (0.1 if atom.name == change else 0.0)
+        lines.append(f"ATOM {atom.name} {atom.type} {charge:.3f} ! 0.0")
+    rtf_path.write_text("\n".join(lines) + "\n")
+    return rtf_path
+
+
+def test_ligand_charges_match_rtf(tmp_path):
+    download, _ = _write_solution_builder(tmp_path / "download")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
+    itp = run / "toppar" / "LIG.itp"
+
+    good = check_ligand_charges_match_rtf(run / "topol.top", _rtf_from_itp(itp, tmp_path / "lig.rtf"))
+    bad = check_ligand_charges_match_rtf(run / "topol.top", _rtf_from_itp(itp, tmp_path / "bad.rtf", change="O3"))
+
+    assert good.status == "PASS" and good.evidence.startswith("15/15 atoms")  # C4H8O3
+    assert bad.status == "FAIL" and "O3" in bad.evidence
+    assert check_ligand_charges_match_rtf(run / "topol.top", None).status == "SKIP"
+    assert read_cgenff_version(tmp_path / "lig.rtf") == ("4.0", "5.0")
+
+
+def _retype_centre(itp):
+    text = itp.read_text().splitlines()
+    text = [line.replace(" CG321 ", " CG311 ", 1) if " C2 " in line and "LIG" in line else line for line in text]
+    itp.write_text("\n".join(text) + "\n")
+
+
+def test_signed_volumes_agree_with_r_sdf_and_flag_s(tmp_path):
+    download, sdf = _write_solution_builder(tmp_path / "download")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "run")
+    _retype_centre(run / "toppar" / "LIG.itp")  # atom 2 is the CH stereocentre in C[C@@H](O)CC(=O)O
+
+    result = check_ligand_signed_volumes(run / "step5_input.gro", run / "topol.top", sdf)
+    s_sdf = tmp_path / "s.sdf"
+    Chem.MolToMolFile(_embedded(S_LIGAND), str(s_sdf))
+    against_s = check_ligand_signed_volumes(run / "step5_input.gro", run / "topol.top", s_sdf)
+    s_download, r_sdf = _write_solution_builder(tmp_path / "s_download", smiles=S_LIGAND)
+    s_run = prepare_charmm_gui_run_folder(s_download, tmp_path / "s_run")
+    _retype_centre(s_run / "toppar" / "LIG.itp")
+    s_coordinates = check_ligand_signed_volumes(s_run / "step5_input.gro", s_run / "topol.top", r_sdf)
+
+    assert result.status == "PASS" and result.evidence.startswith("1/1 R")
+    assert "C2 [OH, CH2, CH3]" in result.evidence  # hydroxyl O, CH2, CH3 around the centre
+    assert against_s.status == "PASS"  # opposite handedness to an S reference = R
+    assert s_coordinates.status == "FAIL" and "-> S" in s_coordinates.evidence
+
+
+def test_mdp_lengths_and_slurm_comments(tmp_path):
+    download, _ = _write_solution_builder(tmp_path / "download")
+    run = prepare_charmm_gui_run_folder(download, tmp_path / "GK13_P3HO4_gromacs")
+
+    stages = {stage.name: stage for stage in describe_run_folder_protocol(run)}
+    slurm = (run / "run_hpc_equilibration_production.slurm").read_text()
+
+    assert stages["step6.1_nvt"].length_text() == "125 ps (125000 steps x 0.001 ps)"
+    assert stages["step6.2_npt"].position_restraints and stages["step6.2_npt"].pressure_coupling == "C-rescale"
+    assert stages["step7_production"].length_text() == "200 ns (100000000 steps x 0.002 ps)"
+    assert stages["step6.0_minimization"].length_text() == "up to 5000 steps"
+    assert "#SBATCH --job-name=GK13_P3HO4_gromacs" in slurm
+    assert "# Step 6.1 — NVT 125 ps (125000 steps x 0.001 ps)" in slurm
+    assert "# Step 7 — Production 200 ns (100000000 steps x 0.002 ps)" in slurm
+    mdp = tmp_path / "short.mdp"
+    mdp.write_text("integrator = md\ndt = 0.002\nnsteps = 5000000\n")
+    assert read_mdp_stage(mdp).length_text() == "10 ns (5000000 steps x 0.002 ps)"
+    assert annotate_slurm_stage_lengths("# Step 6.1 — NVT 100 ps\n", run).startswith("# Step 6.1 — NVT 125 ps")

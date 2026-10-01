@@ -493,30 +493,8 @@ def ligand_stereocentres(
 
     from rdkit import Chem
     from rdkit.Chem import AllChem
-    from rdkit.Geometry import Point3D
 
-    molecule = _find_molecule(read_topology_molecules(topology_path), ligand)
-    if molecule is None:
-        raise ValueError(f"No [ moleculetype ] {ligand} in {topology_path}")
-    atoms, box = read_gro(gro_path)
-    ligand_atoms = _first_residue(atoms, ligand)
-    if len(ligand_atoms) != len(molecule.atoms):
-        raise ValueError(
-            f"{ligand}: {len(ligand_atoms)} coordinates vs {len(molecule.atoms)} topology atoms"
-        )
-    positions = _make_whole([atom.position for atom in ligand_atoms], molecule.bonds, box[:3])
-
-    editable = Chem.RWMol()
-    for atom in molecule.atoms:
-        editable.AddAtom(Chem.Atom(_element(atom.mass)))
-    for i, j in sorted({tuple(sorted(bond)) for bond in molecule.bonds}):
-        editable.AddBond(i, j, Chem.BondType.SINGLE)
-    mol = editable.GetMol()
-    conformer = Chem.Conformer(mol.GetNumAtoms())
-    for index, (x, y, z) in enumerate(positions):
-        conformer.SetAtomPosition(index, Point3D(x * 10, y * 10, z * 10))
-    mol.AddConformer(conformer)
-
+    molecule, mol = _ligand_mol_from_gro(gro_path, topology_path, ligand)
     template = Chem.MolFromMolFile(str(sdf_path), removeHs=False)
     if template is None:
         raise ValueError(f"RDKit could not read {sdf_path}")
@@ -546,6 +524,139 @@ def check_ligand_stereocentres(
     shown = ", ".join(f"{atom} {label}" for atom, label in centres) or "none found"
     ok = bool(centres) and all(label == expected for _, label in centres)
     return CheckResult(name, "PASS" if ok else "FAIL", shown)
+
+
+def read_rtf_charges(rtf_path: str | Path) -> dict[str, tuple[str, float]]:
+    """Atom name -> (CGenFF type, charge) from the ATOM lines of a CHARMM ``.rtf``."""
+
+    charges: dict[str, tuple[str, float]] = {}
+    for line in Path(rtf_path).read_text(errors="replace").splitlines():
+        fields = line.split("!", 1)[0].split()
+        if len(fields) >= 4 and fields[0].upper() == "ATOM":
+            charges[fields[1]] = (fields[2], float(fields[3]))
+    return charges
+
+
+def read_cgenff_version(path: str | Path) -> tuple[str | None, str | None]:
+    """(CGenFF program version, topology/parameter files version) from a ``lig.rtf``/``lig.prm`` header."""
+
+    program = files = None
+    for line in Path(path).read_text(errors="replace").splitlines():
+        if not line.startswith("*"):
+            continue
+        program = program or _search(PROGRAM_VERSION_PATTERN, line)
+        files = files or _search(FILES_VERSION_PATTERN, line)
+    return program, files
+
+
+def check_ligand_charges_match_rtf(
+    topology_path: str | Path,
+    rtf_path: str | Path | None,
+    ligand: str = "LIG",
+    tolerance: float = 1e-3,
+) -> CheckResult:
+    """Every LIG atom in the GROMACS topology has the type and charge from ``lig.rtf``."""
+
+    name = f"{ligand} charges equal lig.rtf"
+    if rtf_path is None:
+        return CheckResult(name, "SKIP", "no lig.rtf given")
+    molecule = _find_molecule(read_topology_molecules(topology_path), ligand)
+    if molecule is None:
+        return CheckResult(name, "FAIL", f"no [ moleculetype ] {ligand}")
+    rtf = read_rtf_charges(rtf_path)
+    mismatched = [
+        atom.name for atom in molecule.atoms
+        if atom.name not in rtf or rtf[atom.name][0] != atom.type or abs(rtf[atom.name][1] - atom.charge) > tolerance
+    ]
+    if mismatched or len(rtf) != len(molecule.atoms):
+        return CheckResult(
+            name, "FAIL",
+            f"{len(molecule.atoms)} itp vs {len(rtf)} rtf atoms; differing: {', '.join(mismatched[:8]) or 'none'}",
+        )
+    return CheckResult(name, "PASS", f"{len(rtf)}/{len(rtf)} atoms: same type and charge (net {molecule.charge:+.3f} e)")
+
+
+@dataclass(frozen=True)
+class SignedVolume:
+    atom: str
+    neighbours: str
+    volume_md: float
+    volume_sdf: float
+    sdf_label: str
+    label: str
+
+
+def ligand_signed_volumes(
+    gro_path: str | Path,
+    topology_path: str | Path,
+    sdf_path: str | Path,
+    ligand: str = "LIG",
+    centre_type: str = "CG311",
+) -> list[SignedVolume]:
+    """Handedness of each ``centre_type`` stereocentre in the GROMACS coordinates vs the SDF.
+
+    For every CG311 carbon (the PHA backbone CH), the signed volume of its three
+    heavy neighbours (O, CH2, CH3 for PHB; O, CH2, CH2 for longer side chains),
+    taken in the same order in both structures, is compared with the SDF. The
+    same sign means the same configuration as the SDF (R for an R-configured SDF).
+    """
+
+    from rdkit import Chem
+
+    molecule, mol = _ligand_mol_from_gro(gro_path, topology_path, ligand)
+    template = Chem.MolFromMolFile(str(sdf_path), removeHs=False)
+    if template is None:
+        raise ValueError(f"RDKit could not read {sdf_path}")
+    Chem.AssignStereochemistryFrom3D(template)
+    sdf_labels = dict(Chem.FindMolChiralCenters(template, includeUnassigned=True, useLegacyImplementation=False))
+    match = mol.GetSubstructMatch(_connectivity_graph(template))
+    if len(match) != template.GetNumAtoms():
+        raise ValueError(f"{ligand} does not have the SDF's connectivity")
+    template_of = {itp_index: t_index for t_index, itp_index in enumerate(match)}
+
+    md_xyz = mol.GetConformer().GetPositions()
+    sdf_xyz = template.GetConformer().GetPositions()
+    results = []
+    for index, atom in enumerate(molecule.atoms):
+        if atom.type != centre_type:
+            continue
+        t_centre = template_of[index]
+        heavy = [n for n in template.GetAtomWithIdx(t_centre).GetNeighbors() if n.GetAtomicNum() > 1]
+        hydrogens = {n.GetIdx(): n.GetTotalNumHs(includeNeighbors=True) for n in heavy}
+        heavy.sort(key=lambda n: (-n.GetAtomicNum(), hydrogens[n.GetIdx()], n.GetIdx()))
+        names = ", ".join(
+            n.GetSymbol() + ("" if hydrogens[n.GetIdx()] == 0 else "H" if hydrogens[n.GetIdx()] == 1 else f"H{hydrogens[n.GetIdx()]}")
+            for n in heavy
+        )
+        t_indices = [n.GetIdx() for n in heavy]
+        md_indices = [match[i] for i in t_indices]
+        volume_md = _signed_volume(md_xyz, match[t_centre], md_indices)
+        volume_sdf = _signed_volume(sdf_xyz, t_centre, t_indices)
+        sdf_label = sdf_labels.get(t_centre, "?")
+        same = (volume_md > 0) == (volume_sdf > 0)
+        label = sdf_label if same else {"R": "S", "S": "R"}.get(sdf_label, "?")
+        results.append(SignedVolume(atom.name, names, volume_md, volume_sdf, sdf_label, label))
+    return results
+
+
+def check_ligand_signed_volumes(
+    gro_path: str | Path,
+    topology_path: str | Path,
+    sdf_path: str | Path | None,
+    ligand: str = "LIG",
+    expected: str = "R",
+) -> CheckResult:
+    name = f"{ligand} stereocentres {expected} (signed volume vs SDF)"
+    if sdf_path is None:
+        return CheckResult(name, "SKIP", "no SDF given")
+    try:
+        volumes = ligand_signed_volumes(gro_path, topology_path, sdf_path, ligand)
+    except Exception as exc:  # report, do not crash the notebook
+        return CheckResult(name, "FAIL", f"could not compare with the SDF: {exc}")
+    good = sum(v.label == expected for v in volumes)
+    detail = "; ".join(f"{v.atom} [{v.neighbours}] {v.volume_md:+.2f} vs {v.volume_sdf:+.2f} Å³ -> {v.label}" for v in volumes)
+    status = "PASS" if volumes and good == len(volumes) else "FAIL"
+    return CheckResult(name, status, f"{good}/{len(volumes)} {expected}: {detail or 'no centres found'}")
 
 
 def check_gromacs_run_files(
@@ -677,7 +788,7 @@ def prepare_charmm_gui_run_folder(
     run_dir: str | Path,
     *,
     template_dir: str | Path | None = None,
-    job_name: str = "charmm_gromacs",
+    job_name: str | None = None,
 ) -> Path:
     """Turn a Solution Builder download into a run folder, as in the production runs.
 
@@ -685,6 +796,8 @@ def prepare_charmm_gui_run_folder(
     new ``run_dir``, renames ``step3_input.gro`` to ``step5_input.gro``, leaves out
     CHARMM-GUI's ``step4.x``/``step5`` mdp files, and adds the CHARMM/GROMACS mdp files and
     scripts from ``template_dir`` (default: the packaged CHARMM/GROMACS templates).
+    The SLURM job name defaults to the run folder's name, and the SLURM stage
+    comments are written from the copied mdp files (nsteps x dt).
     """
 
     source = Path(solution_builder_dir).expanduser().resolve()
@@ -721,9 +834,83 @@ def prepare_charmm_gui_run_folder(
     source_script = templates / HPC_SCRIPT
     if not source_script.is_file():
         source_script = templates / HPC_SCRIPT_TEMPLATE
-    (output / HPC_SCRIPT).write_text(source_script.read_text().replace("{JOB_NAME}", job_name))
+    text = source_script.read_text().replace("{JOB_NAME}", job_name or output.name)
+    (output / HPC_SCRIPT).write_text(annotate_slurm_stage_lengths(text, output))
     (output / LOCAL_SCRIPT).chmod(0o755)
     return output
+
+
+# Stage names and labels used in the SLURM comments, in run order.
+SLURM_STAGES = (
+    ("step6.1_nvt", "Step 6.1", "NVT"),
+    ("step6.2_npt", "Step 6.2", "NPT"),
+    ("step7_production", "Step 7", "Production"),
+)
+
+
+@dataclass(frozen=True)
+class MdpStage:
+    name: str
+    integrator: str
+    nsteps: int
+    dt_ps: float | None
+    temperature: str | None
+    pressure_coupling: str | None
+    position_restraints: bool
+
+    @property
+    def length_ps(self) -> float | None:
+        return None if self.dt_ps is None else self.nsteps * self.dt_ps
+
+    def length_text(self) -> str:
+        if self.dt_ps is None:
+            return f"up to {self.nsteps} steps"
+        length = self.length_ps
+        amount = f"{length / 1000:g} ns" if length >= 1000 else f"{length:g} ps"
+        return f"{amount} ({self.nsteps} steps x {self.dt_ps:g} ps)"
+
+
+def read_mdp_stage(mdp_path: str | Path) -> MdpStage:
+    """Length and main settings of one mdp file (length = nsteps x dt)."""
+
+    path = Path(mdp_path)
+    values: dict[str, str] = {}
+    for raw in path.read_text().splitlines():
+        line = raw.split(";", 1)[0]
+        if "=" in line:
+            key, value = line.split("=", 1)
+            values[key.strip().lower().replace("_", "-")] = value.strip()
+    integrator = values.get("integrator", "md")
+    minimisation = integrator in ("steep", "cg", "l-bfgs")
+    return MdpStage(
+        name=path.stem,
+        integrator=integrator,
+        nsteps=int(float(values.get("nsteps", "0"))),
+        dt_ps=None if minimisation else float(values.get("dt", "0.001")),
+        temperature=values.get("ref-t"),
+        pressure_coupling=values.get("pcoupl") if values.get("pcoupl", "no").lower() != "no" else None,
+        position_restraints="-DPOSRES" in values.get("define", ""),
+    )
+
+
+def describe_run_folder_protocol(folder: str | Path) -> list[MdpStage]:
+    """The step6.0–step7 stages of a run folder, as set in its mdp files."""
+
+    folder = Path(folder)
+    return [read_mdp_stage(folder / name) for name in CHARMM_GROMACS_MDP_FILES if (folder / name).is_file()]
+
+
+def annotate_slurm_stage_lengths(text: str, folder: str | Path) -> str:
+    """Rewrite the ``# Step 6.1/6.2/7 — ...`` comments from the folder's mdp files."""
+
+    lines = text.splitlines()
+    for stage, label, kind in SLURM_STAGES:
+        mdp = Path(folder) / f"{stage}.mdp"
+        if not mdp.is_file():
+            continue
+        comment = f"# {label} — {kind} {read_mdp_stage(mdp).length_text()}"
+        lines = [comment if line.startswith(f"# {label} ") else line for line in lines]
+    return "\n".join(lines) + "\n"
 
 
 def run_dry_minimization(
@@ -941,6 +1128,61 @@ def _insert_water_ion_includes(topology_path: Path) -> None:
     lines[includes[-1] + 1 : includes[-1] + 1] = [f'#include "{name}"' for name in WATER_ION_MOLECULE_INCLUDES]
     lines.insert(includes[0] + 1, f'#include "{WATER_ION_ATOMTYPES_INCLUDE}"')
     topology_path.write_text("\n".join(lines) + "\n")
+
+
+def _ligand_mol_from_gro(gro_path, topology_path, ligand):
+    """The ligand as an RDKit molecule: graph from the .itp bonds (all single), coordinates
+    (Å) from the .gro, made whole across the periodic box."""
+
+    from rdkit import Chem
+    from rdkit.Geometry import Point3D
+
+    molecule = _find_molecule(read_topology_molecules(topology_path), ligand)
+    if molecule is None:
+        raise ValueError(f"No [ moleculetype ] {ligand} in {topology_path}")
+    atoms, box = read_gro(gro_path)
+    ligand_atoms = _first_residue(atoms, ligand)
+    if len(ligand_atoms) != len(molecule.atoms):
+        raise ValueError(f"{ligand}: {len(ligand_atoms)} coordinates vs {len(molecule.atoms)} topology atoms")
+    positions = _make_whole([atom.position for atom in ligand_atoms], molecule.bonds, box[:3])
+    editable = Chem.RWMol()
+    for atom in molecule.atoms:
+        editable.AddAtom(Chem.Atom(_element(atom.mass)))
+    for i, j in sorted({tuple(sorted(bond)) for bond in molecule.bonds}):
+        editable.AddBond(i, j, Chem.BondType.SINGLE)
+    mol = editable.GetMol()
+    conformer = Chem.Conformer(mol.GetNumAtoms())
+    for index, (x, y, z) in enumerate(positions):
+        conformer.SetAtomPosition(index, Point3D(x * 10, y * 10, z * 10))
+    mol.AddConformer(conformer)
+    mol.UpdatePropertyCache(strict=False)
+    return molecule, mol
+
+
+def _connectivity_graph(template):
+    """Copy of ``template`` with only elements and connectivity (all single bonds)."""
+
+    from rdkit import Chem
+
+    graph = Chem.RWMol(template)
+    for bond in graph.GetBonds():
+        bond.SetBondType(Chem.BondType.SINGLE)
+        bond.SetIsAromatic(False)
+    for atom in graph.GetAtoms():
+        atom.SetIsAromatic(False)
+        atom.SetFormalCharge(0)
+        atom.SetNoImplicit(True)
+        atom.SetNumExplicitHs(0)
+        atom.SetChiralTag(Chem.ChiralType.CHI_UNSPECIFIED)
+    graph = graph.GetMol()
+    graph.UpdatePropertyCache(strict=False)
+    return graph
+
+
+def _signed_volume(xyz, centre: int, neighbours: list[int]) -> float:
+    c = xyz[centre]
+    a, b, d = (xyz[i] - c for i in neighbours[:3])
+    return float(a[0] * (b[1] * d[2] - b[2] * d[1]) - a[1] * (b[0] * d[2] - b[2] * d[0]) + a[2] * (b[0] * d[1] - b[1] * d[0]))
 
 
 def _topology_files(topology_path: Path) -> list[Path]:
