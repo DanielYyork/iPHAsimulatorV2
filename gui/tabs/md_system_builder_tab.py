@@ -24,7 +24,8 @@ from gui.md_system_helpers import (
     build_melt_system_subprocess,
     build_solvated_ions_system_subprocess,
     build_solvated_system_subprocess,
-    get_available_built_polymers,
+    get_built_polymer_choices,
+    get_incomplete_polymer_builds,
     get_salt_name,
     get_water_model_settings,
 )
@@ -216,7 +217,7 @@ All scientific operations run as subprocesses in the dedicated
             """
 ### Workflow
 
-1. Select a previously built polymer.
+1. Select a polymer type and enter its chain length. Only completed builds can be used.
 2. Select the required MD system type.
 3. Configure the system-building parameters.
 4. Press **Build MD System**.
@@ -239,9 +240,17 @@ All scientific operations run as subprocesses in the dedicated
 
     st.divider()
 
-    polymers = get_available_built_polymers(
+    polymers = get_built_polymer_choices(
         structure_database=STRUCTURE_DATABASE,
     )
+
+    incomplete = get_incomplete_polymer_builds(STRUCTURE_DATABASE)
+    if incomplete:
+        with st.expander("Polymers with incomplete build files"):
+            st.caption("A SMILES entry or PDB alone does not mean a polymer build completed. "
+                       "Check its build log and rebuild before using it here.")
+            for name, reason in incomplete.items():
+                st.write(f"**{name}**: {reason}.")
 
     if not polymers:
         st.warning(
@@ -258,7 +267,7 @@ All scientific operations run as subprocesses in the dedicated
     summary_columns = st.columns(3)
 
     summary_columns[0].metric(
-        "Available polymers",
+        "Available polymer types",
         len(polymers),
     )
 
@@ -285,6 +294,22 @@ All scientific operations run as subprocesses in the dedicated
         key="md_builder_system_type",
     )
 
+    polymer_type = st.selectbox(
+        "Polymer type", list(polymers), key="md_builder_polymer_type",
+    )
+    lengths = polymers[polymer_type]
+    st.caption("Available lengths: " + ", ".join(str(length) for length in lengths))
+    length = int(st.number_input(
+        "Polymer length (monomer units)", min_value=1, value=min(lengths), step=1,
+        key=f"md_builder_length_{polymer_type}",
+    ))
+    polymer_name = lengths.get(length)
+    if polymer_name is None:
+        st.error(f"{polymer_type} with {length} monomer units has not been built successfully. "
+                 "Build this length in the Polymer Builder first, or choose an available length.")
+        st.button("🔨 Build MD System", disabled=True, key="md_builder_build_button")
+        return
+
     build_function = None
     build_arguments = {}
     proposed_system_name = None
@@ -296,12 +321,6 @@ All scientific operations run as subprocesses in the dedicated
     if system_type == "Dry PHA":
         st.markdown(
             "### Dry single-chain system"
-        )
-
-        polymer_name = st.selectbox(
-            "Built polymer",
-            polymers,
-            key="md_builder_dry_polymer",
         )
 
         option_columns = st.columns(2)
@@ -343,12 +362,6 @@ All scientific operations run as subprocesses in the dedicated
     elif system_type == "Solvated PHA":
         st.markdown(
             "### Solvated single-chain system"
-        )
-
-        polymer_name = st.selectbox(
-            "Built polymer",
-            polymers,
-            key="md_builder_solvated_polymer",
         )
 
         option_columns = st.columns(3)
@@ -405,12 +418,6 @@ All scientific operations run as subprocesses in the dedicated
     elif system_type == "Solvated PHA with ions":
         st.markdown(
             "### Solvated and ionised single-chain system"
-        )
-
-        polymer_name = st.selectbox(
-            "Built polymer",
-            polymers,
-            key="md_builder_ions_polymer",
         )
 
         first_row = st.columns(3)
@@ -522,12 +529,6 @@ All scientific operations run as subprocesses in the dedicated
         st.caption(
             "The current GUI version builds a melt containing one polymer "
             "type. Multi-component melts can be added later."
-        )
-
-        polymer_name = st.selectbox(
-            "Built polymer",
-            polymers,
-            key="md_builder_melt_polymer",
         )
 
         option_columns = st.columns(2)
