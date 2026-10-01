@@ -83,6 +83,20 @@ def penalty_category(penalty: float | None) -> str:
     return "extensive validation required"
 
 
+# Plain-language grades for the same thresholds, with the rule shown to the user.
+PENALTY_GRADE_RULES = {"GOOD": "below 10", "CHECK": "10-50", "POOR": "above 50"}
+
+
+def penalty_grade(penalty: float) -> str:
+    """GOOD (< 10), CHECK (10-50) or POOR (> 50) for a CGenFF penalty."""
+
+    if penalty < 10:
+        return "GOOD"
+    if penalty <= 50:
+        return "CHECK"
+    return "POOR"
+
+
 def read_cgenff_penalties(lig_dir: str | Path) -> CGenFFPenaltyReport:
     """Parse penalty scores from ``lig.rtf``, ``lig_g.rtf`` and ``lig.prm``.
 

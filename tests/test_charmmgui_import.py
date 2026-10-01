@@ -4,6 +4,7 @@ from iphasimulator.charmmgui_import import (
     check_cgenff_penalties,
     format_cgenff_penalty_report,
     penalty_category,
+    penalty_grade,
     read_cgenff_penalties,
 )
 
@@ -112,3 +113,8 @@ def test_check_cgenff_penalties_warns_between_10_and_50(lig_dir):
 def test_check_cgenff_penalties_skips_without_lig_folder(tmp_path):
     assert check_cgenff_penalties(None).status == "SKIP"
     assert check_cgenff_penalties(tmp_path).status == "SKIP"
+
+
+@pytest.mark.parametrize("penalty, grade", [(0, "GOOD"), (9.99, "GOOD"), (10, "CHECK"), (50, "CHECK"), (50.1, "POOR")])
+def test_penalty_grade(penalty, grade):
+    assert penalty_grade(penalty) == grade
