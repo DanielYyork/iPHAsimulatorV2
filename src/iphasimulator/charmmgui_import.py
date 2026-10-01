@@ -783,43 +783,57 @@ class CharmmPolymerWaterFolder:
     hpc_script_path: Path
 
 
-def prepare_charmm_polymer_water_folder(
+def prepare_charmm_dry_polymer_folder(
     ligand_reader_dir: str | Path,
-    run_dir: str | Path,
+    gromacs_dir: str | Path,
+) -> Path:
+    """Write ``gromacs_dir/dry_polymer``: the CGenFF PHA ready for GROMACS, no solvent.
+
+    The Ligand Reader topology (``topol.top``, ``charmm36.itp``, ``LIG.itp``) with the
+    packaged CHARMM TIP3P/SOD/CLA files included, ``step5_input.gro`` and
+    ``index.ndx`` (the same files ``prepare_gromacs_run_folder`` writes for a GAFF2
+    PHA), plus ``lig.gro`` and ``dry_minimization.mdp`` for an optional solvent-free
+    minimisation.
+    """
+
+    from iphasimulator.simulation_gromacs_runner import _copy_solvation_templates, _write_default_index
+
+    source = Path(ligand_reader_dir).expanduser().resolve()
+    gromacs = Path(gromacs_dir).expanduser().resolve()
+    if gromacs == source or source in gromacs.parents:
+        raise ValueError(f"Refusing to write inside the CHARMM-GUI download: {gromacs}")
+    dry = prepare_dry_ligand_folder(source, gromacs / "dry_polymer")
+    shutil.copyfile(dry / DRY_COORDINATES, dry / "step5_input.gro")
+    _write_default_index(dry / "step5_input.gro", dry / "index.ndx")
+    _copy_solvation_templates(dry)
+    _insert_water_ion_includes(dry / "topol.top")
+    return dry
+
+
+def write_charmm_polymer_solvation_files(
+    gromacs_dir: str | Path,
     *,
     box_padding_nm: float = 1.2,
     ion_concentration_molar: float = 0.15,
     job_name: str | None = None,
 ) -> CharmmPolymerWaterFolder:
-    """Set up a CGenFF polymer-in-water GROMACS folder like the polymer benchmark.
+    """Write ``gromacs_dir/solvated_polymer`` from ``dry_polymer`` like the polymer benchmark.
 
-    ``run_dir/dry_polymer`` holds the Ligand Reader topology (``charmm36.itp``,
-    ``LIG.itp``) and coordinates, with the packaged CHARMM TIP3P/SOD/CLA files
-    included. ``run_dir/solvated_polymer`` gets the CHARMM polymer mdp set and the
-    benchmark's ``run_solvate_local.sh`` (box, water, ions), ``run_step6_local.sh``
-    and SLURM script. Nothing is solvated until :func:`run_charmm_polymer_solvation`.
+    Copies the topology include files and the CHARMM polymer mdp set, then calls
+    :func:`write_gromacs_solvation_files` for the benchmark's ``run_solvate_local.sh``
+    (box, water, ions), ``run_step6_local.sh`` and SLURM script. Nothing is solvated
+    until ``run_solvate_local.sh`` runs.
     """
 
-    from iphasimulator.simulation_gromacs_runner import (
-        _copy_solvation_templates,
-        _write_default_index,
-        write_gromacs_solvation_files,
-    )
+    from iphasimulator.simulation_gromacs_runner import write_gromacs_solvation_files
 
-    source = Path(ligand_reader_dir).expanduser().resolve()
-    run = Path(run_dir).expanduser().resolve()
-    if run == source or source in run.parents:
-        raise ValueError(f"Refusing to write inside the CHARMM-GUI download: {run}")
-    if run.exists():
-        raise FileExistsError(f"Output folder already exists; choose a new one: {run}")
-
-    dry = prepare_dry_ligand_folder(source, run / "dry_polymer")
-    shutil.copyfile(dry / DRY_COORDINATES, dry / "step5_input.gro")
-    _write_default_index(dry / "step5_input.gro", dry / "index.ndx")
-    _copy_solvation_templates(dry)
-    _insert_water_ion_includes(dry / "topol.top")
-
-    solvated = run / "solvated_polymer"
+    gromacs = Path(gromacs_dir).expanduser().resolve()
+    dry = gromacs / "dry_polymer"
+    if not (dry / "topol.top").is_file():
+        raise FileNotFoundError(f"{dry / 'topol.top'} not found; prepare dry_polymer first")
+    solvated = gromacs / "solvated_polymer"
+    if solvated.exists():
+        raise FileExistsError(f"{solvated} already exists; choose a new gromacs folder")
     solvated.mkdir()
     for path in _topology_files(dry / "topol.top")[1:]:
         shutil.copyfile(path, solvated / path.name)
@@ -832,19 +846,41 @@ def prepare_charmm_polymer_water_folder(
     )
     if job_name:
         script = files.hpc_script_path
-        lines = script.read_text().splitlines()
         lines = [
             f"#SBATCH --job-name={job_name}" if line.startswith("#SBATCH --job-name=") else line
-            for line in lines
+            for line in script.read_text().splitlines()
         ]
         script.write_text("\n".join(lines) + "\n")
     return CharmmPolymerWaterFolder(
-        run_dir=run,
+        run_dir=gromacs,
         dry_dir=dry,
         solvated_dir=solvated,
         solvate_script_path=files.solvate_script_path,
         local_script_path=files.local_script_path,
         hpc_script_path=files.hpc_script_path,
+    )
+
+
+def prepare_charmm_polymer_water_folder(
+    ligand_reader_dir: str | Path,
+    run_dir: str | Path,
+    *,
+    box_padding_nm: float = 1.2,
+    ion_concentration_molar: float = 0.15,
+    job_name: str | None = None,
+) -> CharmmPolymerWaterFolder:
+    """Both steps at once: :func:`prepare_charmm_dry_polymer_folder`, then
+    :func:`write_charmm_polymer_solvation_files`, in a new ``run_dir``."""
+
+    run = Path(run_dir).expanduser().resolve()
+    if run.exists():
+        raise FileExistsError(f"Output folder already exists; choose a new one: {run}")
+    prepare_charmm_dry_polymer_folder(ligand_reader_dir, run)
+    return write_charmm_polymer_solvation_files(
+        run,
+        box_padding_nm=box_padding_nm,
+        ion_concentration_molar=ion_concentration_molar,
+        job_name=job_name,
     )
 
 

@@ -65,7 +65,7 @@ GAFF2 PHA (Amber parameters):
 CHARMM/GROMACS:
 
 8. `05B_charmm_cgenff_parameters.ipynb`: CGenFF parameters through CHARMM-GUI Ligand Reader & Modeler and the Solution Builder handoff.
-9. `06B1_charmm_gromacs_polymer_in_water.ipynb`: the CGenFF polymer in CHARMM TIP3P water with SOD/CLA, built locally from a Ligand Reader download with the same layout and protocol as the polymer-only benchmark (CHARMM non-bonded settings). §0 is an optional check without solvent.
+9. `06B1_charmm_gromacs_polymer_in_water.ipynb`: PHA in water with the same steps as 06A1 (box, CHARMM TIP3P + SOD/CLA, run files, benchmark protocol), but with the CGenFF PHA from a Ligand Reader download and CHARMM non-bonded settings.
 10. `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb`: prepare and validate a CHARMM-GUI Solution Builder GROMACS package for enzyme + polymer in water, as used for the enzyme–PHA runs.
 
 Execution and analysis:

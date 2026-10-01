@@ -440,3 +440,24 @@ def test_run_charmm_polymer_solvation_reports_failure(tmp_path):
 
     with pytest.raises(RuntimeError, match="genion failed"):
         run_charmm_polymer_solvation(folder.solvated_dir, runner=failing)
+
+
+def test_charmm_polymer_folder_in_two_steps_matches_one_step(tmp_path):
+    from iphasimulator.charmmgui_import import (
+        prepare_charmm_dry_polymer_folder,
+        write_charmm_polymer_solvation_files,
+    )
+
+    download, _ = _write_ligand_reader(tmp_path / "lrm")
+    dry = prepare_charmm_dry_polymer_folder(download, tmp_path / "two" / "gromacs")
+    assert {"topol.top", "step5_input.gro", "index.ndx", "lig.gro", "dry_minimization.mdp"} <= {p.name for p in dry.iterdir()}
+    assert not (dry.parent / "solvated_polymer").exists()
+    two = write_charmm_polymer_solvation_files(dry.parent, job_name="x")
+    one = prepare_charmm_polymer_water_folder(download, tmp_path / "one")
+
+    assert sorted(p.name for p in two.solvated_dir.iterdir()) == sorted(p.name for p in one.solvated_dir.iterdir())
+    assert (two.solvated_dir / "topol.top").read_text() == (one.solvated_dir / "topol.top").read_text()
+    with pytest.raises(FileExistsError):
+        write_charmm_polymer_solvation_files(dry.parent)
+    with pytest.raises(FileNotFoundError, match="dry_polymer"):
+        write_charmm_polymer_solvation_files(tmp_path / "empty")
