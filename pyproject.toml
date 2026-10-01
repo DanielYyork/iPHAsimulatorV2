@@ -47,6 +47,7 @@ iphasimulator = [
     "data/gromacs_solvation/*.mdp",
     "data/charmm_gromacs/*",
     "data/charmm_gromacs_polymer/*",
+    "data/amber_openmm/*.py",
 ]
 
 [tool.pytest.ini_options]

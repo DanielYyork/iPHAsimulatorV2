@@ -20,9 +20,10 @@ polymer to protein to water and ions, so parameters from the two families are ne
 | Water / ions | OPC (with the ion parameters loaded by `leaprc.water.opc`) | CHARMM TIP3P + SOD/CLA |
 | Engine | OpenMM | GROMACS |
 | Parameters | `05A_amber_gaff2_parameters.ipynb` | `05B_charmm_cgenff_parameters.ipynb` |
-| Polymer without solvent (quick check) | `06A1_amber_openmm_vacuum_check.ipynb` | §0 of `06B1_charmm_gromacs_polymer_in_water.ipynb` |
-| Polymer in water | `06A2_amber_openmm_solvated_system.ipynb` (without `PROTEIN_PDB`) | `06B1_charmm_gromacs_polymer_in_water.ipynb` |
-| Enzyme + polymer in water | `06A2_amber_openmm_solvated_system.ipynb` (with `PROTEIN_PDB`) | `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb` |
+| Polymer in water | `06A1_amber_openmm_polymer_in_water.ipynb` | `06B1_charmm_gromacs_polymer_in_water.ipynb` |
+| Enzyme + polymer in water | `06A2_amber_openmm_enzyme_polymer_in_water.ipynb` | `06B2_charmm_gromacs_enzyme_polymer_in_water.ipynb` |
+| Quick check without solvent | §0 of 06A1 | §0 of 06B1 |
+| MD protocol | 06A1 = 06B1 (polymer benchmark); 06A2 = 06B2 (enzyme runs). Non-bonded settings follow each force field. | |
 | HPC | `07_hpc_execution.ipynb`, OpenMM section | `07_hpc_execution.ipynb`, GROMACS section |
 
 The enzyme–PHA production simulations (GK13/ANC45 × P3HO_4/P3HB_4) used the **CHARMM/GROMACS** route.
@@ -36,7 +37,7 @@ flowchart LR
     S --> A5
     S --> B5
     subgraph AO["Amber/OpenMM"]
-        A5["05A Amber/GAFF2 parameters"] --> A61["06A1 vacuum check"] --> A62["06A2 solvated system"]
+        A5["05A Amber/GAFF2 parameters"] --> A61["06A1 polymer in water"] --> A62["06A2 enzyme + polymer in water"]
     end
     subgraph CG["CHARMM/GROMACS"]
         B5["05B CHARMM/CGenFF parameters"] --> B61["06B1 polymer in water"] --> B62["06B2 enzyme + polymer in water"]
@@ -58,8 +59,8 @@ Shared build stage:
 Amber/OpenMM:
 
 5. `05A_amber_gaff2_parameters.ipynb`: AmberTools GAFF2 parameters (ABCG2 charges by default).
-6. `06A1_amber_openmm_vacuum_check.ipynb`: vacuum OpenMM check of the GAFF2 polymer. A sanity check, not a physical result.
-7. `06A2_amber_openmm_solvated_system.ipynb`: polymer in OPC water via tleap, optionally with a posed ff19SB protein; short OpenMM test (minimise, 10 ps NVT, 10 ps NPT) and restartable production files for HPC.
+6. `06A1_amber_openmm_polymer_in_water.ipynb`: the GAFF2 polymer in OPC water (tleap), with staged OpenMM run files and the polymer benchmark protocol. §0 is an optional check without solvent.
+7. `06A2_amber_openmm_enzyme_polymer_in_water.ipynb`: enzyme + polymer in OPC water from the same docked complex PDB as 06B2 (ff19SB + GAFF2, tleap), with the enzyme-run protocol.
 
 CHARMM/GROMACS:
 

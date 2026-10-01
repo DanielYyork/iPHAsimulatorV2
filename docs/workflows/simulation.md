@@ -13,7 +13,7 @@ run during a documentation build.
 ## OpenMM: AMBER topology route
 
 1. Obtain matching `P3HB_4.prmtop` and `P3HB_4.inpcrd` from the GAFF2 step.
-2. Review notebook **06A1** and choose a fresh output folder.
+2. Review §0 of notebook **06A1** and choose a fresh output folder.
 3. Start with a deliberately short run after the source and engine checks pass:
 
 ```python
@@ -37,9 +37,10 @@ as skipped for nonperiodic input. Review stage logs, the final structure and
 `openmm_summary.log` before increasing the run length. These short settings are
 for a smoke test, not equilibration or convergence evidence.
 
-**Solvated OpenMM with Amber force fields is notebook 06A2.** It builds the GAFF2 polymer in OPC
-water with tleap (optionally with a posed ff19SB protein) and runs a short OpenMM
-test.
+**Solvated OpenMM with Amber force fields is notebooks 06A1 (polymer in water) and
+06A2 (enzyme + polymer in water).** They build the system in OPC water with tleap
+(ff19SB for the protein) and write staged OpenMM run files whose protocols match
+the GROMACS notebooks 06B1 and 06B2.
 
 ## GROMACS with CHARMM-GUI inputs
 

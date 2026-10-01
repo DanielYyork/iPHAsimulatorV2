@@ -1,14 +1,19 @@
-"""Amber/OpenMM solvated systems: tleap (GAFF2 + OPC, optional ff19SB) and short OpenMM runs.
+"""Amber/OpenMM solvated systems: tleap (GAFF2 + OPC, optional ff19SB) and staged OpenMM MD.
 
-``tleap`` and OpenMM run only when :func:`build_solvated_amber_system`,
-:func:`run_openmm_short_test` or a generated production script is called.
-Everything else here writes text files into a new output folder.
+The MD protocols mirror the CHARMM/GROMACS references: POLYMER_IN_WATER_PROTOCOL
+follows the polymer benchmark (notebook 06B1) and ENZYME_POLYMER_IN_WATER_PROTOCOL
+the enzyme–polymer production runs (06B2); only the non-bonded settings are
+Amber's. ``tleap`` and OpenMM run only when a ``build_``/``run_`` function or the
+generated ``run_openmm_md.py`` is called; everything else writes text files.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from dataclasses import asdict
+import importlib.util
+import json
 import re
 import shutil
 import subprocess
@@ -22,8 +27,11 @@ TLEAP_INPUT = "tleap.in"
 TLEAP_LOG = "tleap.log"
 COUNT_INPUT = "tleap_count_waters.in"
 COUNT_LOG = "tleap_count_waters.log"
-PRODUCTION_SCRIPT = "run_openmm_production.py"
-PRODUCTION_SLURM = "run_openmm_production.slurm"
+RUN_SCRIPT = "run_openmm_md.py"
+PROTOCOL_FILE = "protocol.json"
+LOCAL_SCRIPT = "run_step6_local.sh"
+HPC_SCRIPT = "run_hpc_equilibration_production.slurm"
+RUN_SCRIPT_SOURCE = Path(__file__).resolve().parent / "data" / "amber_openmm" / RUN_SCRIPT
 
 ADDED_RESIDUES_PATTERN = re.compile(r"Added\s+(\d+)\s+residues")
 ION_PARAMETERS_PATTERN = re.compile(r"Loading parameters:\s*(\S*frcmod\.ion\S*)")
@@ -36,6 +44,7 @@ class AmberSolvationSettings:
 
     padding_nm: float = 1.2
     box_shape: str = "box"  # "box" (solvateBox) or "oct" (solvateOct)
+    cubic: bool = True  # solvateBox ... iso: cubic box, like gmx editconf -bt cubic
     salt_molar: float = 0.15
     cation: str = "Na+"
     anion: str = "Cl-"
@@ -68,31 +77,60 @@ class TleapLogSummary:
 
 
 @dataclass(frozen=True)
-class OpenMMTestSettings:
-    """PME / HBonds / LangevinMiddle / Monte Carlo barostat settings for the Amber/OpenMM route."""
+class OpenMMProtocol:
+    """Staged MD settings (times in ps/ns, time steps in fs, restraints in kJ mol^-1 nm^-2)."""
 
-    cutoff_nm: float = 1.0
-    temperature_kelvin: float = 300.0
-    friction_per_ps: float = 1.0
-    timestep_fs: float = 2.0
+    name: str
+    temperature_kelvin: float
+    minimization_max_iterations: int
+    nvt_ps: float
+    nvt_timestep_fs: float
+    npt_ps: float
+    npt_timestep_fs: float
+    production_ns: float
+    production_frame_ps: float
+    production_timestep_fs: float = 2.0
+    equilibration_frame_ps: float = 0.0
+    report_ps: float = 10.0
     pressure_bar: float = 1.0
-    nvt_ps: float = 10.0
-    npt_ps: float = 10.0
-    report_interval_steps: int = 500
-    platform_name: str | None = None
+    cutoff_nm: float = 1.0
+    friction_per_ps: float = 1.0
+    barostat_frequency: int = 25
+    minimization_tolerance: float = 1000.0
+    backbone_restraint: float = 0.0
+    sidechain_restraint: float = 0.0
 
-    def steps(self, picoseconds: float) -> int:
-        return round(picoseconds * 1000 / self.timestep_fs)
 
+# Polymer benchmark / 06B1: 300 K, no restraints, 100 ps NVT, 500 ps NPT, 100 ns, frames every 2 ps.
+POLYMER_IN_WATER_PROTOCOL = OpenMMProtocol(
+    name="polymer_in_water",
+    temperature_kelvin=300.0,
+    minimization_max_iterations=50000,
+    nvt_ps=100.0,
+    nvt_timestep_fs=2.0,
+    npt_ps=500.0,
+    npt_timestep_fs=2.0,
+    production_ns=100.0,
+    production_frame_ps=2.0,
+)
 
-@dataclass(frozen=True)
-class OpenMMTestResult:
-    output_dir: Path
-    minimized_energy_kj_mol: float
-    nvt_energy_kj_mol: float
-    npt_energy_kj_mol: float
-    density_g_ml: float
-    report_path: Path
+# Enzyme–polymer production runs / 06B2: 303.15 K, restraints (N/CA/C/O and polymer
+# heavy atoms 400, other protein heavy atoms 40) during minimisation, NVT and NPT,
+# 125 ps NVT at 1 fs, 500 ps NPT, 200 ns, frames every 100 ps.
+ENZYME_POLYMER_IN_WATER_PROTOCOL = OpenMMProtocol(
+    name="enzyme_polymer_in_water",
+    temperature_kelvin=303.15,
+    minimization_max_iterations=5000,
+    nvt_ps=125.0,
+    nvt_timestep_fs=1.0,
+    npt_ps=500.0,
+    npt_timestep_fs=2.0,
+    production_ns=200.0,
+    production_frame_ps=100.0,
+    equilibration_frame_ps=5.0,
+    backbone_restraint=400.0,
+    sidechain_restraint=40.0,
+)
 
 
 def salt_ion_pairs(water_count: int, salt_molar: float) -> int:
@@ -136,7 +174,8 @@ def write_tleap_input(
     else:
         lines.append("SYS = copy POL")
     command = "solvateBox" if settings.box_shape == "box" else "solvateOct"
-    lines.append(f"{command} SYS OPCBOX {settings.padding_nm * 10:.1f}")
+    iso = " iso" if settings.box_shape == "box" and settings.cubic else ""
+    lines.append(f"{command} SYS OPCBOX {settings.padding_nm * 10:.1f}{iso}")
     if salt_pairs is not None:
         lines += [
             f"addIonsRand SYS {settings.cation} 0",
@@ -234,125 +273,59 @@ def build_solvated_amber_system(
     )
 
 
-def run_openmm_short_test(
-    prmtop_path: str | Path,
-    inpcrd_path: str | Path,
-    output_dir: str | Path,
-    *,
-    settings: OpenMMTestSettings = OpenMMTestSettings(),
-) -> OpenMMTestResult:
-    """Minimise, then run short NVT and NPT stages and report energies and density."""
-
-    import openmm
-    from openmm import app, unit
-
-    output = Path(output_dir)
-    output.mkdir(parents=True, exist_ok=True)
-    prmtop = app.AmberPrmtopFile(str(prmtop_path))
-    inpcrd = app.AmberInpcrdFile(str(inpcrd_path))
-    system = prmtop.createSystem(
-        nonbondedMethod=app.PME,
-        nonbondedCutoff=settings.cutoff_nm * unit.nanometer,
-        constraints=app.HBonds,
-    )
-    barostat = openmm.MonteCarloBarostat(
-        settings.pressure_bar * unit.bar, settings.temperature_kelvin * unit.kelvin
-    )
-    barostat_index = system.addForce(barostat)
-    barostat.setFrequency(0)  # off during NVT
-    integrator = openmm.LangevinMiddleIntegrator(
-        settings.temperature_kelvin * unit.kelvin,
-        settings.friction_per_ps / unit.picosecond,
-        settings.timestep_fs * unit.femtosecond,
-    )
-    platform = openmm.Platform.getPlatformByName(settings.platform_name) if settings.platform_name else None
-    simulation = app.Simulation(prmtop.topology, system, integrator, *([platform] if platform else []))
-    simulation.context.setPositions(inpcrd.positions)
-    if inpcrd.boxVectors is not None:
-        simulation.context.setPeriodicBoxVectors(*inpcrd.boxVectors)
-
-    def energy() -> float:
-        state = simulation.context.getState(getEnergy=True)
-        return state.getPotentialEnergy().value_in_unit(unit.kilojoule_per_mole)
-
-    simulation.minimizeEnergy()
-    minimized = energy()
-    report_path = output / "short_test.csv"
-    simulation.reporters.append(
-        app.StateDataReporter(
-            str(report_path),
-            settings.report_interval_steps,
-            step=True,
-            time=True,
-            potentialEnergy=True,
-            temperature=True,
-            density=True,
-            volume=True,
-        )
-    )
-    simulation.context.setVelocitiesToTemperature(settings.temperature_kelvin * unit.kelvin)
-    simulation.step(settings.steps(settings.nvt_ps))
-    nvt = energy()
-    system.getForce(barostat_index).setFrequency(25)
-    simulation.context.reinitialize(preserveState=True)
-    simulation.step(settings.steps(settings.npt_ps))
-    npt = energy()
-
-    state = simulation.context.getState(getPositions=True)
-    volume = state.getPeriodicBoxVolume().value_in_unit(unit.nanometer**3)
-    mass = sum(
-        system.getParticleMass(index).value_in_unit(unit.dalton)
-        for index in range(system.getNumParticles())
-    )
-    with open(output / "short_test_final.pdb", "w") as handle:
-        app.PDBFile.writeFile(simulation.topology, state.getPositions(), handle)
-    with open(output / "short_test_state.xml", "w") as handle:
-        handle.write(
-            openmm.XmlSerializer.serialize(
-                simulation.context.getState(getPositions=True, getVelocities=True)
-            )
-        )
-    return OpenMMTestResult(
-        output_dir=output,
-        minimized_energy_kj_mol=minimized,
-        nvt_energy_kj_mol=nvt,
-        npt_energy_kj_mol=npt,
-        density_g_ml=density_g_per_ml(mass, volume),
-        report_path=report_path,
-    )
-
-
-def write_openmm_production_files(
+def write_openmm_run_files(
     system_dir: str | Path,
+    protocol: OpenMMProtocol,
     *,
-    production_ns: float = 100.0,
-    job_name: str = "amber_openmm",
-    settings: OpenMMTestSettings = OpenMMTestSettings(),
-    report_interval_ps: float = 100.0,
-) -> tuple[Path, Path]:
-    """Write a restartable OpenMM production script and a SLURM file into ``system_dir``."""
+    job_name: str,
+    polymer_residues: tuple[str, ...] = ("PHA",),
+) -> tuple[Path, ...]:
+    """Write ``run_openmm_md.py``, ``protocol.json``, ``run_step6_local.sh`` and the SLURM file.
+
+    The layout mirrors the GROMACS run folders: step 6.0 locally, then steps 6.1,
+    6.2 and 7 on the cluster. ``polymer_residues`` names the polymer residue(s)
+    restrained with the backbone force constant.
+    """
 
     folder = Path(system_dir)
     for name in (SYSTEM_PRMTOP, SYSTEM_INPCRD):
         if not (folder / name).is_file():
             raise FileNotFoundError(f"{name} not found in {folder}; build the system first")
-    report_steps = settings.steps(report_interval_ps)
-    script = PRODUCTION_SCRIPT_TEMPLATE.format(
-        prmtop=SYSTEM_PRMTOP,
-        inpcrd=SYSTEM_INPCRD,
-        cutoff_nm=settings.cutoff_nm,
-        temperature=settings.temperature_kelvin,
-        friction=settings.friction_per_ps,
-        timestep_fs=settings.timestep_fs,
-        pressure=settings.pressure_bar,
-        total_steps=settings.steps(production_ns * 1000),
-        report_steps=report_steps,
+    script = folder / RUN_SCRIPT
+    shutil.copyfile(RUN_SCRIPT_SOURCE, script)
+    protocol_path = folder / PROTOCOL_FILE
+    protocol_path.write_text(
+        json.dumps({**asdict(protocol), "polymer_residues": list(polymer_residues)}, indent=2) + "\n"
     )
-    script_path = folder / PRODUCTION_SCRIPT
-    script_path.write_text(script)
-    slurm_path = folder / PRODUCTION_SLURM
-    slurm_path.write_text(PRODUCTION_SLURM_TEMPLATE.replace("{JOB_NAME}", job_name))
-    return script_path, slurm_path
+    local = folder / LOCAL_SCRIPT
+    local.write_text(LOCAL_SCRIPT_TEXT)
+    local.chmod(0o755)
+    hpc = folder / HPC_SCRIPT
+    hpc.write_text(HPC_SCRIPT_TEMPLATE.replace("{JOB_NAME}", job_name))
+    hpc.chmod(0o755)
+    return script, protocol_path, local, hpc
+
+
+def load_openmm_runner():
+    """Import the packaged ``run_openmm_md.py`` (the same file the run folders use)."""
+
+    spec = importlib.util.spec_from_file_location("iphasimulator_run_openmm_md", RUN_SCRIPT_SOURCE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def run_openmm_stages(system_dir: str | Path, stages, *, platform_name: str | None = None) -> list[dict]:
+    """Run stages (e.g. ``["step6.0_minimization"]``) in ``system_dir`` with its protocol.json."""
+
+    runner = load_openmm_runner()
+    return [runner.run_stage(stage, system_dir, platform_name=platform_name) for stage in stages]
+
+
+def run_openmm_short_test(system_dir: str | Path, *, platform_name: str | None = None) -> list[dict]:
+    """Minimise, then 10 ps NVT and 10 ps NPT in ``system_dir/short_test`` (protocol otherwise)."""
+
+    return load_openmm_runner().run_short_test(system_dir, platform_name=platform_name)
 
 
 def _run_tleap(folder: Path, input_name: str, log_name: str, tleap: str, runner) -> str:
@@ -370,89 +343,30 @@ def _run_tleap(folder: Path, input_name: str, log_name: str, tleap: str, runner)
     return output
 
 
-PRODUCTION_SCRIPT_TEMPLATE = '''#!/usr/bin/env python
-"""Amber/OpenMM production run written by iPHASimulator notebook 06A2.
+LOCAL_SCRIPT_TEXT = """#!/usr/bin/env bash
+set -euo pipefail
 
-Restarts from production.chk when it exists. Settings: PME {cutoff_nm} nm,
-HBonds constraints, LangevinMiddle {temperature} K, {timestep_fs} fs,
-Monte Carlo barostat {pressure} bar.
+python run_openmm_md.py step6.0_minimization
 """
 
-from pathlib import Path
-
-import openmm
-from openmm import app, unit
-
-TOTAL_STEPS = {total_steps}
-REPORT_STEPS = {report_steps}
-CHECKPOINT = Path("production.chk")
-
-prmtop = app.AmberPrmtopFile("{prmtop}")
-inpcrd = app.AmberInpcrdFile("{inpcrd}")
-system = prmtop.createSystem(
-    nonbondedMethod=app.PME,
-    nonbondedCutoff={cutoff_nm} * unit.nanometer,
-    constraints=app.HBonds,
-)
-system.addForce(openmm.MonteCarloBarostat({pressure} * unit.bar, {temperature} * unit.kelvin))
-integrator = openmm.LangevinMiddleIntegrator(
-    {temperature} * unit.kelvin, {friction} / unit.picosecond, {timestep_fs} * unit.femtosecond
-)
-
-platform = None
-for name in ("CUDA", "OpenCL", "CPU"):
-    try:
-        platform = openmm.Platform.getPlatformByName(name)
-        break
-    except Exception:
-        continue
-print("Platform:", platform.getName())
-simulation = app.Simulation(prmtop.topology, system, integrator, platform)
-
-if CHECKPOINT.exists():
-    simulation.loadCheckpoint(str(CHECKPOINT))
-    print("Restarted at step", simulation.currentStep)
-else:
-    simulation.context.setPositions(inpcrd.positions)
-    if inpcrd.boxVectors is not None:
-        simulation.context.setPeriodicBoxVectors(*inpcrd.boxVectors)
-    simulation.minimizeEnergy()
-    simulation.context.setVelocitiesToTemperature({temperature} * unit.kelvin)
-
-append = CHECKPOINT.exists()
-simulation.reporters += [
-    app.DCDReporter("production.dcd", REPORT_STEPS, append=append),
-    app.StateDataReporter(
-        "production.csv", REPORT_STEPS, step=True, time=True, potentialEnergy=True,
-        temperature=True, density=True, speed=True, append=append,
-    ),
-    app.CheckpointReporter(str(CHECKPOINT), REPORT_STEPS),
-]
-remaining = TOTAL_STEPS - simulation.currentStep
-if remaining > 0:
-    simulation.step(remaining)
-simulation.saveCheckpoint(str(CHECKPOINT))
-with open("production_final.pdb", "w") as handle:
-    state = simulation.context.getState(getPositions=True, enforcePeriodicBox=True)
-    app.PDBFile.writeFile(simulation.topology, state.getPositions(), handle)
-print("Finished at step", simulation.currentStep)
-'''
-
-PRODUCTION_SLURM_TEMPLATE = """#!/bin/bash -l
+HPC_SCRIPT_TEMPLATE = """#!/bin/bash -l
 #SBATCH --job-name={JOB_NAME}
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --time=2-00:00
 #SBATCH --output=logs/%x-%j.out
 #SBATCH --error=logs/%x-%j.err
 
-# Activate a Python environment with OpenMM (CUDA build) here, for example:
+# Activate a Python environment with OpenMM (CUDA build), for example:
 # module load anaconda3 && conda activate ipha_clean
 
 mkdir -p logs
-python run_openmm_production.py
+
+# Steps 6.1 (NVT), 6.2 (NPT) and 7 (production); settings in protocol.json.
+# Production continues from step7_production.chk when the job is resubmitted.
+python run_openmm_md.py step6.1_nvt step6.2_npt step7_production --platform CUDA
 """
