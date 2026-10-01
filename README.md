@@ -422,7 +422,7 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 | `05B_charmm_cgenff_parameters.ipynb` | Document CHARMM/CGenFF parameterisation handoff. | In-progress CHARMM/CGenFF preparation notes. |
 | `06A1_amber_openmm_vacuum_check.ipynb` | Vacuum OpenMM check of the GAFF2 polymer (Amber force fields). | Dry OpenMM outputs under `examples/output/md_tests/<SYSTEM>/openmm/dry_polymer/`. |
 | `06A2_amber_openmm_solvated_system.ipynb` | Build the GAFF2 polymer in OPC water with tleap (optional ff19SB protein) and test it briefly in OpenMM. | `system.prmtop`/`system.inpcrd`, tleap log and OpenMM production files in a new output folder. |
-| `06B1_charmm_gromacs_vacuum_check.ipynb` | Vacuum GROMACS check of the CGenFF polymer from a CHARMM-GUI Ligand Reader & Modeler download. | A dry GROMACS folder and PASS/FAIL checks. |
+| `06B1_charmm_gromacs_polymer_in_water.ipynb` | Build a CGenFF polymer in CHARMM TIP3P water with SOD/CLA (GROMACS), like the polymer-only benchmark, from a CHARMM-GUI Ligand Reader & Modeler download. | `dry_polymer/` and `solvated_polymer/` with `step5_input.gro`, `topol.top`, mdp files, scripts and PASS/FAIL checks. |
 | `06B2_charmm_gromacs_solvated_system.ipynb` | Prepare and check a CHARMM-GUI Solution Builder GROMACS package (polymer in water or enzyme + polymer). | A GROMACS run folder with `step6.x`/`step7` files and PASS/FAIL checks. |
 | `07_hpc_execution.ipynb` | Prepare and document local/HPC staged execution. | SLURM scripts, restart guidance, and benchmark execution notes. |
 | `08_trajectory_preprocessing.ipynb` | Reconstruct, center, wrap, and optionally fit GROMACS trajectories. | `step7_centered.xtc`, optional `step7_fitted.xtc`, and representative frames. |

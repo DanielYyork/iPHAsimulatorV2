@@ -1,0 +1,35 @@
+; GROMACS production MD for CGenFF (CHARMM) polymer-in-water systems
+; Same protocol as the GAFF2 polymer benchmark; non-bonded settings are CHARMM's
+; (1.2 nm cut-offs, vdW force-switch from 1.0 nm), as CGenFF/CHARMM36 require.
+; Length: 100 ns (50000000 steps x 0.002 ps).
+; Conditions: NPT at 300 K and 1 bar, V-rescale thermostat,
+; C-rescale pressure coupling.
+integrator              = md
+nsteps                  = 50000000
+dt                      = 0.002
+continuation            = yes
+constraint_algorithm    = lincs
+constraints             = h-bonds
+cutoff-scheme           = Verlet
+nstlist                 = 20
+rlist                   = 1.2
+coulombtype             = PME
+rcoulomb                = 1.2
+vdwtype                 = Cut-off
+vdw-modifier            = Force-switch
+rvdw_switch             = 1.0
+rvdw                    = 1.2
+tcoupl                  = V-rescale
+tc-grps                 = System
+tau_t                   = 1.0
+ref_t                   = 300
+pcoupl                  = C-rescale
+pcoupltype              = isotropic
+tau_p                   = 5.0
+ref_p                   = 1.0
+compressibility         = 4.5e-5
+pbc                     = xyz
+gen_vel                 = no
+nstxout-compressed      = 1000
+nstenergy               = 1000
+nstlog                  = 1000

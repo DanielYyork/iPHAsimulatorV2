@@ -325,3 +325,118 @@ def test_prepared_run_folder_is_writable_when_download_is_read_only(tmp_path):
         toppar.chmod(0o755)
         for path in toppar.iterdir():
             path.chmod(0o644)
+
+
+# --- CGenFF polymer in water, solvated locally like the benchmark (06B1) ---
+
+from iphasimulator.charmmgui_import import (  # noqa: E402
+    CHARMM_POLYMER_TEMPLATE_DIR,
+    prepare_charmm_polymer_water_folder,
+    read_topology_molecule_counts,
+    run_charmm_polymer_solvation,
+    validate_charmm_polymer_water_folder,
+)
+
+
+def _fake_solvation(calls):
+    """Stand-in for run_solvate_local.sh: add 1 water + SOD + CLA as genion would."""
+
+    def runner(command, cwd, **kwargs):
+        calls.append((command, cwd))
+        gro = (cwd / "step5_input.gro").read_text().splitlines()
+        n = int(gro[1])
+        extra = [
+            _gro_line(2, "SOL", "OW", n + 1, (0.2, 0.2, 0.2)),
+            _gro_line(2, "SOL", "HW1", n + 2, (0.3, 0.2, 0.2)),
+            _gro_line(2, "SOL", "HW2", n + 3, (0.2, 0.3, 0.2)),
+            _gro_line(3, "SOD", "SOD", n + 4, (2.5, 2.5, 2.5)),
+            _gro_line(4, "CLA", "CLA", n + 5, (2.5, 0.5, 2.5)),
+        ]
+        body = gro[2 : 2 + n] + extra
+        (cwd / "step5_input.gro").write_text("solvated\n" + f"{len(body):5d}\n" + "\n".join(body) + "\n" + gro[2 + n] + "\n")
+        top = cwd / "topol.top"
+        top.write_text(top.read_text().rstrip("\n") + "\nSOL 1\nSOD 1\nCLA 1\n")
+        (cwd / "index.ndx").write_text("[ System ]\n" + " ".join(str(i) for i in range(1, len(body) + 1)) + "\n")
+        return subprocess.CompletedProcess(command, 0, "done", "")
+
+    return runner
+
+
+def test_prepare_charmm_polymer_water_folder_matches_benchmark_layout(tmp_path):
+    download, _ = _write_ligand_reader(tmp_path / "lrm")
+
+    folder = prepare_charmm_polymer_water_folder(download, tmp_path / "PHO4_water", job_name="PHO4_cgenff")
+
+    dry, solvated = folder.dry_dir, folder.solvated_dir
+    assert (dry.name, solvated.name) == ("dry_polymer", "solvated_polymer")
+    for name in ("step5_input.gro", "topol.top", "index.ndx", "charmm36.itp", "LIG.itp",
+                 "TIP3_SOL.itp", "SOD.itp", "CLA.itp", "tip3_ions_atomtypes.itp", "ions.mdp",
+                 "run_solvate_local.sh", "run_step6_local.sh", "run_hpc_equilibration_production.slurm"):
+        assert (solvated / name).is_file(), name
+    for name in ("step6.0_minimization.mdp", "step6.1_nvt.mdp", "step6.2_npt.mdp", "step7_production.mdp"):
+        assert (solvated / name).read_text() == (CHARMM_POLYMER_TEMPLATE_DIR / name).read_text()
+    includes = [line for line in (dry / "topol.top").read_text().splitlines() if line.startswith("#include")]
+    assert includes == ['#include "charmm36.itp"', '#include "tip3_ions_atomtypes.itp"', '#include "LIG.itp"',
+                        '#include "TIP3_SOL.itp"', '#include "SOD.itp"', '#include "CLA.itp"']
+    assert (solvated / "topol.top").read_text() == (dry / "topol.top").read_text()
+    assert "#SBATCH --job-name=PHO4_cgenff" in folder.hpc_script_path.read_text()
+    assert "-d 1.2 -bt cubic" in folder.solvate_script_path.read_text()
+    assert 'ION_CONCENTRATION_MOLAR="0.15"' in folder.solvate_script_path.read_text()
+
+
+def test_charmm_polymer_mdp_templates_keep_benchmark_protocol_with_charmm_nonbonded():
+    from iphasimulator.charmmgui_import import _itp_lines  # mdp lines parse the same way
+
+    def settings(name):
+        return {f[0]: f[2] for f in _itp_lines(CHARMM_POLYMER_TEMPLATE_DIR / name) if len(f) >= 3 and f[1] == "="}
+
+    nvt, npt, prod = (settings(f"{n}.mdp") for n in ("step6.1_nvt", "step6.2_npt", "step7_production"))
+    for stage in (settings("step6.0_minimization.mdp"), nvt, npt, prod):
+        assert (stage["rvdw"], stage["rcoulomb"], stage["rvdw_switch"], stage["vdw-modifier"]) == ("1.2", "1.2", "1.0", "Force-switch")
+        assert "define" not in stage
+    assert (nvt["ref_t"], nvt["nsteps"], nvt["dt"], nvt["tc-grps"]) == ("300", "50000", "0.002", "System")
+    assert (npt["pcoupl"], npt["nsteps"]) == ("C-rescale", "250000")
+    assert (prod["nsteps"], prod["nstxout-compressed"]) == ("50000000", "1000")
+
+
+def test_solvated_polymer_folder_validates_after_solvation(tmp_path):
+    download, sdf = _write_ligand_reader(tmp_path / "lrm")
+    folder = prepare_charmm_polymer_water_folder(download, tmp_path / "run")
+    calls = []
+
+    run_charmm_polymer_solvation(folder.solvated_dir, runner=_fake_solvation(calls))
+    results = validate_charmm_polymer_water_folder(folder.solvated_dir, sdf_path=sdf)
+
+    assert calls == [(["bash", "run_solvate_local.sh"], folder.solvated_dir)]
+    assert all(result.status == "PASS" for result in results), format_checks(results)
+    assert read_topology_molecule_counts(folder.solvated_dir / "topol.top") == {"LIG": 1, "SOL": 1, "SOD": 1, "CLA": 1}
+
+
+def test_unsolvated_polymer_folder_fails_water_check(tmp_path):
+    download, sdf = _write_ligand_reader(tmp_path / "lrm")
+    folder = prepare_charmm_polymer_water_folder(download, tmp_path / "run")
+
+    results = validate_charmm_polymer_water_folder(folder.solvated_dir, sdf_path=sdf)
+
+    assert _status(results, "molecule counts") == "FAIL"
+
+
+def test_prepare_charmm_polymer_water_folder_refuses_existing_or_nested_output(tmp_path):
+    download, _ = _write_ligand_reader(tmp_path / "lrm")
+    (tmp_path / "exists").mkdir()
+
+    with pytest.raises(FileExistsError):
+        prepare_charmm_polymer_water_folder(download, tmp_path / "exists")
+    with pytest.raises(ValueError, match="Refusing"):
+        prepare_charmm_polymer_water_folder(download, download / "run")
+
+
+def test_run_charmm_polymer_solvation_reports_failure(tmp_path):
+    download, _ = _write_ligand_reader(tmp_path / "lrm")
+    folder = prepare_charmm_polymer_water_folder(download, tmp_path / "run")
+
+    def failing(command, cwd, **kwargs):
+        return subprocess.CompletedProcess(command, 1, "", "genion failed")
+
+    with pytest.raises(RuntimeError, match="genion failed"):
+        run_charmm_polymer_solvation(folder.solvated_dir, runner=failing)

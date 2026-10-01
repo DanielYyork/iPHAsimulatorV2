@@ -548,12 +548,15 @@ def check_ligand_stereocentres(
     return CheckResult(name, "PASS" if ok else "FAIL", shown)
 
 
-def check_gromacs_run_files(folder: str | Path) -> CheckResult:
+def check_gromacs_run_files(
+    folder: str | Path,
+    index_groups: tuple[str, ...] = CHARMM_GUI_INDEX_GROUPS,
+) -> CheckResult:
     folder = Path(folder)
     required = ("step5_input.gro", "topol.top", "index.ndx", *CHARMM_GROMACS_MDP_FILES, LOCAL_SCRIPT, HPC_SCRIPT)
     missing = [name for name in required if not (folder / name).is_file()]
     groups = _index_groups(folder / "index.ndx") if (folder / "index.ndx").is_file() else set()
-    missing_groups = [group for group in CHARMM_GUI_INDEX_GROUPS if group not in groups]
+    missing_groups = [group for group in index_groups if group not in groups]
     problems = []
     if missing:
         problems.append("missing " + ", ".join(missing))
@@ -564,7 +567,7 @@ def check_gromacs_run_files(folder: str | Path) -> CheckResult:
     return CheckResult(
         "run files and index groups",
         "PASS",
-        f"{len(required)} files; index groups {', '.join(CHARMM_GUI_INDEX_GROUPS)} present",
+        f"{len(required)} files; index groups {', '.join(index_groups)} present",
     )
 
 
@@ -759,6 +762,150 @@ def read_minimization_result(log_path: str | Path) -> MinimizationResult:
         potential_energy=float(energies[-1]) if energies else None,
         maximum_force=float(forces[-1]) if forces else None,
     )
+
+
+# ---------------------------------------------------------------------------
+# CGenFF polymer in water, solvated locally like the polymer benchmark (06B1)
+# ---------------------------------------------------------------------------
+
+CHARMM_POLYMER_TEMPLATE_DIR = Path(__file__).resolve().parent / "data" / "charmm_gromacs_polymer"
+WATER_ION_ATOMTYPES_INCLUDE = "tip3_ions_atomtypes.itp"
+WATER_ION_MOLECULE_INCLUDES = ("TIP3_SOL.itp", "SOD.itp", "CLA.itp")
+SOLVATE_SCRIPT = "run_solvate_local.sh"
+
+
+@dataclass(frozen=True)
+class CharmmPolymerWaterFolder:
+    run_dir: Path
+    dry_dir: Path
+    solvated_dir: Path
+    solvate_script_path: Path
+    local_script_path: Path
+    hpc_script_path: Path
+
+
+def prepare_charmm_polymer_water_folder(
+    ligand_reader_dir: str | Path,
+    run_dir: str | Path,
+    *,
+    box_padding_nm: float = 1.2,
+    ion_concentration_molar: float = 0.15,
+    job_name: str | None = None,
+) -> CharmmPolymerWaterFolder:
+    """Set up a CGenFF polymer-in-water GROMACS folder like the polymer benchmark.
+
+    ``run_dir/dry_polymer`` holds the Ligand Reader topology (``charmm36.itp``,
+    ``LIG.itp``) and coordinates, with the packaged CHARMM TIP3P/SOD/CLA files
+    included. ``run_dir/solvated_polymer`` gets the CHARMM polymer mdp set and the
+    benchmark's ``run_solvate_local.sh`` (box, water, ions), ``run_step6_local.sh``
+    and SLURM script. Nothing is solvated until :func:`run_charmm_polymer_solvation`.
+    """
+
+    from iphasimulator.simulation_gromacs_runner import (
+        _copy_solvation_templates,
+        _write_default_index,
+        write_gromacs_solvation_files,
+    )
+
+    source = Path(ligand_reader_dir).expanduser().resolve()
+    run = Path(run_dir).expanduser().resolve()
+    if run == source or source in run.parents:
+        raise ValueError(f"Refusing to write inside the CHARMM-GUI download: {run}")
+    if run.exists():
+        raise FileExistsError(f"Output folder already exists; choose a new one: {run}")
+
+    dry = prepare_dry_ligand_folder(source, run / "dry_polymer")
+    shutil.copyfile(dry / DRY_COORDINATES, dry / "step5_input.gro")
+    _write_default_index(dry / "step5_input.gro", dry / "index.ndx")
+    _copy_solvation_templates(dry)
+    _insert_water_ion_includes(dry / "topol.top")
+
+    solvated = run / "solvated_polymer"
+    solvated.mkdir()
+    for path in _topology_files(dry / "topol.top")[1:]:
+        shutil.copyfile(path, solvated / path.name)
+    for name in CHARMM_GROMACS_MDP_FILES:
+        shutil.copyfile(CHARMM_POLYMER_TEMPLATE_DIR / name, solvated / name)
+    files = write_gromacs_solvation_files(
+        solvated,
+        box_padding_nm=box_padding_nm,
+        ion_concentration_molar=ion_concentration_molar,
+    )
+    if job_name:
+        script = files.hpc_script_path
+        lines = script.read_text().splitlines()
+        lines = [
+            f"#SBATCH --job-name={job_name}" if line.startswith("#SBATCH --job-name=") else line
+            for line in lines
+        ]
+        script.write_text("\n".join(lines) + "\n")
+    return CharmmPolymerWaterFolder(
+        run_dir=run,
+        dry_dir=dry,
+        solvated_dir=solvated,
+        solvate_script_path=files.solvate_script_path,
+        local_script_path=files.local_script_path,
+        hpc_script_path=files.hpc_script_path,
+    )
+
+
+def run_charmm_polymer_solvation(
+    solvated_dir: str | Path,
+    *,
+    runner=subprocess.run,
+) -> subprocess.CompletedProcess:
+    """Run ``run_solvate_local.sh`` (editconf, solvate, genion, grompp check) in ``solvated_dir``."""
+
+    folder = Path(solvated_dir)
+    if not (folder / SOLVATE_SCRIPT).is_file():
+        raise FileNotFoundError(f"{SOLVATE_SCRIPT} not found in {folder}")
+    result = runner(
+        ["bash", SOLVATE_SCRIPT], cwd=folder, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"{SOLVATE_SCRIPT} failed with return code {result.returncode}.\n"
+            f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+        )
+    return result
+
+
+def validate_charmm_polymer_water_folder(
+    solvated_dir: str | Path,
+    *,
+    sdf_path: str | Path | None = None,
+    ligand: str = "LIG",
+) -> list[CheckResult]:
+    """Read-only checks for a solvated folder from :func:`prepare_charmm_polymer_water_folder`."""
+
+    folder = Path(solvated_dir)
+    topology = folder / "topol.top"
+    gro = folder / "step5_input.gro"
+    return [
+        check_charmm_defaults(topology),
+        check_includes(folder),
+        check_atom_counts(folder, "step5_input.gro"),
+        check_molecule_counts(topology, ligand=ligand, require_water=True),
+        check_net_charge(topology),
+        check_cgenff_types(topology, ligand),
+        check_ligand_atom_order(gro, topology, ligand),
+        check_ligand_stereocentres(gro, topology, sdf_path, ligand),
+        check_gromacs_run_files(folder, index_groups=("System",)),
+    ]
+
+
+def _insert_water_ion_includes(topology_path: Path) -> None:
+    """Add the CHARMM TIP3P/ion atom types after the force-field include and the
+    water/ion molecule types after the last include (the Ligand Reader ``topol.top``
+    only includes ``charmm36.itp`` and ``LIG.itp``)."""
+
+    lines = topology_path.read_text().splitlines()
+    includes = [index for index, line in enumerate(lines) if INCLUDE_PATTERN.match(line)]
+    if not includes:
+        raise ValueError(f"No #include lines in {topology_path}")
+    lines[includes[-1] + 1 : includes[-1] + 1] = [f'#include "{name}"' for name in WATER_ION_MOLECULE_INCLUDES]
+    lines.insert(includes[0] + 1, f'#include "{WATER_ION_ATOMTYPES_INCLUDE}"')
+    topology_path.write_text("\n".join(lines) + "\n")
 
 
 def _topology_files(topology_path: Path) -> list[Path]:

@@ -1,0 +1,19 @@
+; GROMACS energy minimisation for CGenFF (CHARMM) polymer-in-water systems
+; Same protocol as the GAFF2 polymer benchmark; non-bonded settings are CHARMM's
+; (1.2 nm cut-offs, vdW force-switch from 1.0 nm), as CGenFF/CHARMM36 require.
+; Steepest-descent minimisation; no physical simulation time.
+; Runs up to 50000 minimisation steps or until emtol is reached.
+integrator              = steep
+emtol                   = 1000.0
+emstep                  = 0.01
+nsteps                  = 50000
+cutoff-scheme           = Verlet
+nstlist                 = 20
+rlist                   = 1.2
+coulombtype             = PME
+rcoulomb                = 1.2
+vdwtype                 = Cut-off
+vdw-modifier            = Force-switch
+rvdw_switch             = 1.0
+rvdw                    = 1.2
+pbc                     = xyz
