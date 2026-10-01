@@ -718,11 +718,10 @@ def prepare_charmm_gui_run_folder(
 
     for name in (*CHARMM_GROMACS_MDP_FILES, LOCAL_SCRIPT):
         shutil.copyfile(templates / name, output / name)
-    if (templates / HPC_SCRIPT).is_file():
-        shutil.copyfile(templates / HPC_SCRIPT, output / HPC_SCRIPT)
-    else:
-        text = (templates / HPC_SCRIPT_TEMPLATE).read_text().replace("{JOB_NAME}", job_name)
-        (output / HPC_SCRIPT).write_text(text)
+    source_script = templates / HPC_SCRIPT
+    if not source_script.is_file():
+        source_script = templates / HPC_SCRIPT_TEMPLATE
+    (output / HPC_SCRIPT).write_text(source_script.read_text().replace("{JOB_NAME}", job_name))
     (output / LOCAL_SCRIPT).chmod(0o755)
     return output
 
