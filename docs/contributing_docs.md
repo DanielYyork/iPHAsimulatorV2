@@ -38,7 +38,7 @@ Write ordinary Markdown. Add a new page to the appropriate `toctree` in
 For source-file downloads, use MyST's download role:
 
 ```text
-{download}`Notebook <../notebooks/01_examples_pha_oligomers.ipynb>`
+{download}`Notebook <../notebooks/01_build_pha_oligomer.ipynb>`
 ```
 
 For API links, use a Python-domain role, for example

@@ -414,19 +414,22 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 
 | Notebook | Purpose | Main output |
 |---|---|---|
-| `01_examples_pha_oligomers.ipynb` | Introduce built-in PHA oligomer generation examples. | Example RDKit PHA molecules for tutorial use. |
-| `02_design_polymer_for_user_request.ipynb` | Select or define a PHA target from user-facing design inputs. | A designed polymer target such as `P3HB_4`. |
-| `03_validate_and_visualize.ipynb` | Validate generated oligomers and inspect molecular structures. | Validation summaries and visual checks. |
+| `01_build_pha_oligomer.ipynb` | Introduce built-in PHA oligomer generation examples. | Example RDKit PHA molecules for tutorial use. |
+| `02_design_custom_pha.ipynb` | Select or define a PHA target from user-facing design inputs. | A designed polymer target such as `P3HB_4`. |
+| `03_validate_structures.ipynb` | Validate generated oligomers and inspect molecular structures. | Validation summaries and visual checks. |
 | `04_export_structures.ipynb` | Export validated oligomers to structure files. | PDB/SDF files in `examples/output/polymer_structures/`. |
-| `05A_amber_gaff2_parameterisation.ipynb` | Run AmberTools/GAFF2 parameterisation. | `prmtop`, `inpcrd`, GAFF2 `mol2`/`frcmod`, and logs under `examples/output/md_tests/<SYSTEM>/gaff2/`. |
-| `05B_charmm_cgenff_parameterisation.ipynb` | Document CHARMM/CGenFF parameterisation handoff. | In-progress CHARMM/CGenFF preparation notes. |
-| `06A_openmm_dry_polymer.ipynb` | Dry OpenMM check of GAFF2-derived AMBER files (Amber force fields). | Dry OpenMM outputs under `examples/output/md_tests/<SYSTEM>/openmm/dry_polymer/`. |
-| `archive/hybrid_06*` | Hybrid GAFF2 → GROMACS route with CHARMM-style TIP3P/SOD/CLA, kept for provenance. | The polymer-only benchmark systems and the P3HB_4_01 example trajectory used in 08/09. |
-| `07_hpc_workflows.ipynb` | Prepare and document local/HPC staged execution. | SLURM scripts, restart guidance, and benchmark execution notes. |
+| `05A_amber_gaff2_parameters.ipynb` | Run AmberTools/GAFF2 parameterisation. | `prmtop`, `inpcrd`, GAFF2 `mol2`/`frcmod`, and logs under `examples/output/md_tests/<SYSTEM>/gaff2/`. |
+| `05B_charmm_cgenff_parameters.ipynb` | Document CHARMM/CGenFF parameterisation handoff. | In-progress CHARMM/CGenFF preparation notes. |
+| `06A1_amber_openmm_vacuum_check.ipynb` | Vacuum OpenMM check of the GAFF2 polymer (Amber force fields). | Dry OpenMM outputs under `examples/output/md_tests/<SYSTEM>/openmm/dry_polymer/`. |
+| `06A2_amber_openmm_solvated_system.ipynb` | Build the GAFF2 polymer in OPC water with tleap (optional ff19SB protein) and test it briefly in OpenMM. | `system.prmtop`/`system.inpcrd`, tleap log and OpenMM production files in a new output folder. |
+| `06B1_charmm_gromacs_vacuum_check.ipynb` | Vacuum GROMACS check of the CGenFF polymer from a CHARMM-GUI Ligand Reader & Modeler download. | A dry GROMACS folder and PASS/FAIL checks. |
+| `06B2_charmm_gromacs_solvated_system.ipynb` | Prepare and check a CHARMM-GUI Solution Builder GROMACS package (polymer in water or enzyme + polymer). | A GROMACS run folder with `step6.x`/`step7` files and PASS/FAIL checks. |
+| `07_hpc_execution.ipynb` | Prepare and document local/HPC staged execution. | SLURM scripts, restart guidance, and benchmark execution notes. |
 | `08_trajectory_preprocessing.ipynb` | Reconstruct, center, wrap, and optionally fit GROMACS trajectories. | `step7_centered.xtc`, optional `step7_fitted.xtc`, and representative frames. |
-| `09_basic_polymer_analysis.ipynb` | Run basic polymer trajectory analysis. | Analysis tables and plots for metrics such as radius of gyration and SASA. |
-| `10_batch_md_benchmark.ipynb` | Launch and track multi-system MD benchmark preparation. | Benchmark outputs under `examples/output/benchmark/`. |
-| `11_PHA_Enzyme_Docking.ipynb` | Prepare PHA oligomer inputs for manual enzyme docking. | Docking-ready polymer PDBs and manual HADDOCK job records under `examples/output/docking_inputs/`. |
+| `09_solvated_polymer_analysis.ipynb` | Run basic polymer trajectory analysis. | Analysis tables and plots for metrics such as radius of gyration and SASA. |
+| `10_polymer_benchmark_batch.ipynb` | Launch and track multi-system MD benchmark preparation. | Benchmark outputs under `examples/output/benchmark/`. |
+| `11_enzyme_docking_setup.ipynb` | Prepare PHA oligomer inputs for manual enzyme docking. | Docking-ready polymer PDBs and manual HADDOCK job records under `examples/output/docking_inputs/`. |
+| `12_enzyme_polymer_analysis.ipynb` | Stability diagnostics for one enzyme–polymer GROMACS production run. | Total energy, protein backbone RMSD and polymer RMSD plots. |
 
 ## Minimal P3HB_4 Benchmark Workflow
 
@@ -447,7 +450,7 @@ tests/       Automated tests for builders, export, MD workflow helpers,
    examples/output/polymer_structures/P3HB_4.pdb
    ```
 
-3. Run `05A_amber_gaff2_parameterisation.ipynb` with `P3HB_4` as the target.
+3. Run `05A_amber_gaff2_parameters.ipynb` with `P3HB_4` as the target.
    The expected Amber/GAFF2 outputs are written under:
 
    ```text
@@ -456,15 +459,15 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 
 4. Run the relevant MD notebook for the route being tested:
 
-   - `06A_openmm_dry_polymer.ipynb` for dry OpenMM validation.
-   - `notebooks/archive/` hybrid_06B/hybrid_06C: archived hybrid GROMACS route (used for the benchmark and the P3HB_4_01 example).
+   - `06A1_amber_openmm_vacuum_check.ipynb` for dry OpenMM validation.
+   - `06A2_amber_openmm_solvated_system.ipynb` for the solvated OpenMM system (OPC water).
 
 5. For production-style GROMACS trajectories, continue with:
 
-   - `07_hpc_workflows.ipynb` for local/HPC execution guidance.
+   - `07_hpc_execution.ipynb` for local/HPC execution guidance.
    - `08_trajectory_preprocessing.ipynb` to generate analysis-ready trajectories.
-   - `09_basic_polymer_analysis.ipynb` for basic trajectory analysis.
-   - `11_PHA_Enzyme_Docking.ipynb` only after suitable production structures are available.
+   - `09_solvated_polymer_analysis.ipynb` for basic trajectory analysis.
+   - `11_enzyme_docking_setup.ipynb` only after suitable production structures are available.
 
 ## Developer Documentation
 

@@ -111,7 +111,7 @@ realistic PHA oligomer systems with a defined cubic box, TIP3P water, NaCl, and
 multiple polymer copies. It is intentionally not a membrane builder yet, but the
 API leaves room for future enzyme/polymer systems.
 
-Notebook `05A_amber_gaff2_parameterisation.ipynb` is the roadmap before the workflow
+Notebook `05A_amber_gaff2_parameters.ipynb` is the roadmap before the workflow
 branches into the 06-series notebooks. It explains when to use OpenMM vs
 GROMACS, when dry validation is sufficient, when explicit solvent is required,
 and why the project keeps both simplified polymer and CHARMM-GUI-style staged

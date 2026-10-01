@@ -13,7 +13,7 @@ run during a documentation build.
 ## OpenMM: AMBER topology route
 
 1. Obtain matching `P3HB_4.prmtop` and `P3HB_4.inpcrd` from the GAFF2 step.
-2. Review notebook **06A** and choose a fresh output folder.
+2. Review notebook **06A1** and choose a fresh output folder.
 3. Start with a deliberately short run after the source and engine checks pass:
 
 ```python
@@ -37,21 +37,25 @@ as skipped for nonperiodic input. Review stage logs, the final structure and
 `openmm_summary.log` before increasing the run length. These short settings are
 for a smoke test, not equilibration or convergence evidence.
 
-**Solvated OpenMM with Amber force fields is notebook 06B.** It builds the GAFF2 polymer in OPC
+**Solvated OpenMM with Amber force fields is notebook 06A2.** It builds the GAFF2 polymer in OPC
 water with tleap (optionally with a posed ff19SB protein) and runs a short OpenMM
-test. The older native-OpenMM template (`archive/hybrid_06D`) stays disabled.
+test.
 
-## GROMACS: convert and prepare (archived hybrid route)
+## GROMACS with CHARMM-GUI inputs
 
-For the CHARMM/GROMACS route (CHARMM-GUI / CGenFF), use notebooks **06C** (dry polymer) and **06D**
-(Solution Builder package) instead. The steps below are the archived GAFF2 → GROMACS
-route that produced the polymer-only benchmark.
+For CGenFF/CHARMM36m systems prepared in CHARMM-GUI, use notebooks **06B1** (vacuum
+check from a Ligand Reader & Modeler download) and **06B2** (Solution Builder package).
 
-1. In archived **hybrid_06B**, use the converter/preparation helpers to convert AMBER parameters
+## GROMACS from GAFF2/AMBER files (conversion helpers)
+
+The package can also convert GAFF2/AMBER files to GROMACS; the polymer-only benchmark
+systems were prepared this way.
+
+1. Use the converter/preparation helpers to convert AMBER parameters
    with ParmEd and create a self-contained dry run folder.
 2. Validate topology includes, atom counts and the box relative to nonbonded
    cutoffs before any `grompp`/minimisation run.
-3. In archived **hybrid_06C**, generate the explicit-water/ion preparation scripts from the dry
+3. Generate the explicit-water/ion preparation scripts from the dry
    inputs. Review solvent group names and force-field/water compatibility.
 4. Run the generated solvation script deliberately, then check coordinate and
    topology atom counts and solvent/ion molecule counts.
@@ -63,7 +67,7 @@ contains a CHARMM-GUI-style staged workflow; that is distinct from an automated
 enzyme-complex builder. Solvation scripts reset intermediate files in their
 target folder, so keep original inputs and use a dedicated workflow folder.
 
-Notebook links: [06A–06D](../notebooks.md#parameterisation-and-simulation).
+Notebook links: [06A1–06B2](../notebooks.md#parameterisation-and-simulation).
 API: {py:func}`iphasimulator.conversion_amber_to_gromacs.convert_amber_to_gromacs`,
 {py:func}`iphasimulator.simulation_gromacs_runner.prepare_gromacs_run_folder`,
 {py:func}`iphasimulator.simulation_gromacs_runner.validate_gromacs_coordinate_topology_counts`.

@@ -371,7 +371,7 @@ def _run_tleap(folder: Path, input_name: str, log_name: str, tleap: str, runner)
 
 
 PRODUCTION_SCRIPT_TEMPLATE = '''#!/usr/bin/env python
-"""Amber/OpenMM production run written by iPHASimulator notebook 06B.
+"""Amber/OpenMM production run written by iPHASimulator notebook 06A2.
 
 Restarts from production.chk when it exists. Settings: PME {cutoff_nm} nm,
 HBonds constraints, LangevinMiddle {temperature} K, {timestep_fs} fs,

@@ -1,7 +1,7 @@
 # CHARMM/GROMACS run templates
 
 Run files for a CHARMM-GUI Solution Builder GROMACS package (CHARMM36m +
-CGenFF + CHARMM TIP3P + SOD/CLA). Notebook 06D copies them next to the package's
+CGenFF + CHARMM TIP3P + SOD/CLA). Notebook 06B2 copies them next to the package's
 `gromacs/` files after renaming `step3_input.gro` to `step5_input.gro`.
 
 Source: the GK13_P3HO_4 enzyme–PHA production run (CHARMM-GUI job 8214536317).
@@ -13,6 +13,6 @@ Source: the GK13_P3HO_4 enzyme–PHA production run (CHARMM-GUI job 8214536317).
 | `step6.2_npt.mdp` | NPT, 1 bar, C-rescale | dt 2 fs, 250000 steps (500 ps); restraints |
 | `step7_production.mdp` | NPT production | dt 2 fs, 100000000 steps (200 ns) |
 | `run_step6_local.sh` | local minimisation | `grompp` + `mdrun` for step 6.0 |
-| `run_hpc_equilibration_production.slurm.template` | HPC steps 6.1–7 | `{JOB_NAME}` is filled in by 06D; module line is for the KCL GPU cluster |
+| `run_hpc_equilibration_production.slurm.template` | HPC steps 6.1–7 | `{JOB_NAME}` is filled in by 06B2; module line is for the KCL GPU cluster |
 
 The mdp files use the `SOLU`/`SOLV` index groups that CHARMM-GUI writes to `index.ndx`.

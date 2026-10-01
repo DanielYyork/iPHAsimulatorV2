@@ -15,5 +15,5 @@ PHA molecule names are generated in code with `iphasimulator.naming`:
 
 Files under `gromacs_mdp/` and `gromacs_solvation/` are simulation templates;
 do not rename them to match polymer systems. `charmm_gromacs/` holds the CHARMM/GROMACS
-run files (mdp and scripts) that notebook 06D adds to a CHARMM-GUI Solution Builder
+run files (mdp and scripts) that notebook 06B2 adds to a CHARMM-GUI Solution Builder
 package; see its README.

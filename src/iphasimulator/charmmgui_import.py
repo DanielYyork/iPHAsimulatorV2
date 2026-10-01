@@ -185,7 +185,7 @@ def _leading_float(text: str) -> float | None:
 
 
 # ---------------------------------------------------------------------------
-# CHARMM-GUI GROMACS systems (notebooks 06C and 06D)
+# CHARMM-GUI GROMACS systems (notebooks 06B1 and 06B2)
 # ---------------------------------------------------------------------------
 
 CHARMM_GROMACS_TEMPLATE_DIR = Path(__file__).resolve().parent / "data" / "charmm_gromacs"

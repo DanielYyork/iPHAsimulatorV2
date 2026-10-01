@@ -14,24 +14,21 @@ apply even if a notebook contains historical successful output.
 
 | Notebook | Download | Status / prerequisites |
 | --- | --- | --- |
-| [Build a PHA oligomer](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/01_examples_pha_oligomers.ipynb) | {download}`01_examples_pha_oligomers.ipynb <../notebooks/01_examples_pha_oligomers.ipynb>` | RDKit route; import blockers |
-| [Choose a polymer design](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/02_design_polymer_for_user_request.ipynb) | {download}`02_design_polymer_for_user_request.ipynb <../notebooks/02_design_polymer_for_user_request.ipynb>` | RDKit route; import blockers |
-| [Validate and visualise](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/03_validate_and_visualize.ipynb) | {download}`03_validate_and_visualize.ipynb <../notebooks/03_validate_and_visualize.ipynb>` | RDKit route; import blockers |
+| [Build a PHA oligomer](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/01_build_pha_oligomer.ipynb) | {download}`01_build_pha_oligomer.ipynb <../notebooks/01_build_pha_oligomer.ipynb>` | RDKit route; import blockers |
+| [Design a custom PHA](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/02_design_custom_pha.ipynb) | {download}`02_design_custom_pha.ipynb <../notebooks/02_design_custom_pha.ipynb>` | RDKit route; import blockers |
+| [Validate structures](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/03_validate_structures.ipynb) | {download}`03_validate_structures.ipynb <../notebooks/03_validate_structures.ipynb>` | RDKit route; import blockers |
 | [Export structures](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/04_export_structures.ipynb) | {download}`04_export_structures.ipynb <../notebooks/04_export_structures.ipynb>` | RDKit route; import blockers |
 
 ## Parameterisation and simulation
 
 | Notebook | Download | Status / prerequisites |
 | --- | --- | --- |
-| [GAFF2 parameterisation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/05A_amber_gaff2_parameterisation.ipynb) | {download}`05A_amber_gaff2_parameterisation.ipynb <../notebooks/05A_amber_gaff2_parameterisation.ipynb>` | AmberTools; import blocker |
-| [CHARMM/CGenFF handoff](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/05B_charmm_cgenff_parameterisation.ipynb) | {download}`05B_charmm_cgenff_parameterisation.ipynb <../notebooks/05B_charmm_cgenff_parameterisation.ipynb>` | Incomplete manual workflow |
-| [OpenMM dry polymer (Amber force fields)](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06A_openmm_dry_polymer.ipynb) | {download}`06A_openmm_dry_polymer.ipynb <../notebooks/06A_openmm_dry_polymer.ipynb>` | AMBER runner; import blocker |
-| [OpenMM solvated system (Amber force fields)](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06B_openmm_solvated_system.ipynb) | {download}`06B_openmm_solvated_system.ipynb <../notebooks/06B_openmm_solvated_system.ipynb>` | AmberTools tleap + OpenMM; run flags off by default |
-| [GROMACS dry polymer (CHARMM force fields)](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06C_gromacs_dry_polymer.ipynb) | {download}`06C_gromacs_dry_polymer.ipynb <../notebooks/06C_gromacs_dry_polymer.ipynb>` | CHARMM-GUI Ligand Reader download; GROMACS optional |
-| [GROMACS solvated system (CHARMM force fields)](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06D_gromacs_solvated_system.ipynb) | {download}`06D_gromacs_solvated_system.ipynb <../notebooks/06D_gromacs_solvated_system.ipynb>` | CHARMM-GUI Solution Builder download; GROMACS optional |
-| [GROMACS dry preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/archive/hybrid_06B_gromacs_dry_polymer.ipynb) | {download}`hybrid_06B_gromacs_dry_polymer.ipynb <../notebooks/archive/hybrid_06B_gromacs_dry_polymer.ipynb>` | Archived (hybrid route, provenance) |
-| [GROMACS solvation preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/archive/hybrid_06C_gromacs_solvated_system.ipynb) | {download}`hybrid_06C_gromacs_solvated_system.ipynb <../notebooks/archive/hybrid_06C_gromacs_solvated_system.ipynb>` | Archived (hybrid route, provenance) |
-| [OpenMM solvation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/archive/hybrid_06D_openmm_solvated_system.ipynb) | {download}`hybrid_06D_openmm_solvated_system.ipynb <../notebooks/archive/hybrid_06D_openmm_solvated_system.ipynb>` | Archived (hybrid route, provenance) |
+| [Amber/GAFF2 parameters](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/05A_amber_gaff2_parameters.ipynb) | {download}`05A_amber_gaff2_parameters.ipynb <../notebooks/05A_amber_gaff2_parameters.ipynb>` | AmberTools; import blocker |
+| [CHARMM/CGenFF parameters](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/05B_charmm_cgenff_parameters.ipynb) | {download}`05B_charmm_cgenff_parameters.ipynb <../notebooks/05B_charmm_cgenff_parameters.ipynb>` | Incomplete manual workflow |
+| [Amber/OpenMM vacuum check](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06A1_amber_openmm_vacuum_check.ipynb) | {download}`06A1_amber_openmm_vacuum_check.ipynb <../notebooks/06A1_amber_openmm_vacuum_check.ipynb>` | AMBER runner; import blocker |
+| [Amber/OpenMM solvated system](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06A2_amber_openmm_solvated_system.ipynb) | {download}`06A2_amber_openmm_solvated_system.ipynb <../notebooks/06A2_amber_openmm_solvated_system.ipynb>` | AmberTools tleap + OpenMM; run flags off by default |
+| [CHARMM/GROMACS vacuum check](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06B1_charmm_gromacs_vacuum_check.ipynb) | {download}`06B1_charmm_gromacs_vacuum_check.ipynb <../notebooks/06B1_charmm_gromacs_vacuum_check.ipynb>` | CHARMM-GUI Ligand Reader download; GROMACS optional |
+| [CHARMM/GROMACS solvated system](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/06B2_charmm_gromacs_solvated_system.ipynb) | {download}`06B2_charmm_gromacs_solvated_system.ipynb <../notebooks/06B2_charmm_gromacs_solvated_system.ipynb>` | CHARMM-GUI Solution Builder download; GROMACS optional |
 
 ## Execution and analysis
 
@@ -39,12 +36,12 @@ For enzyme–PHA trajectory preparation, use the [standalone Bash templates](enz
 
 | Notebook | Download | Status / prerequisites |
 | --- | --- | --- |
-| [HPC execution and restart](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/07_hpc_workflows.ipynb) | {download}`07_hpc_workflows.ipynb <../notebooks/07_hpc_workflows.ipynb>` | Cluster-specific; configured runner imports blocked |
+| [HPC execution](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/07_hpc_execution.ipynb) | {download}`07_hpc_execution.ipynb <../notebooks/07_hpc_execution.ipynb>` | Cluster-specific; configured runner imports blocked |
 | [Trajectory preprocessing](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/08_trajectory_preprocessing.ipynb) | {download}`08_trajectory_preprocessing.ipynb <../notebooks/08_trajectory_preprocessing.ipynb>` | Requires GROMACS and MD inputs |
-| [Basic polymer analysis](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/09_basic_polymer_analysis.ipynb) | {download}`09_basic_polymer_analysis.ipynb <../notebooks/09_basic_polymer_analysis.ipynb>` | MDTraj notebook workflow |
-| [Six-system MD benchmark](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/10_batch_md_benchmark.ipynb) | {download}`10_batch_md_benchmark.ipynb <../notebooks/10_batch_md_benchmark.ipynb>` | Fixed workflow assumptions; import blockers |
-| [Docking preparation](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/11_PHA_Enzyme_Docking.ipynb) | {download}`11_PHA_Enzyme_Docking.ipynb <../notebooks/11_PHA_Enzyme_Docking.ipynb>` | Manual; verify ligand-only input; benchmark import blocker |
-| [Enzyme/polymer stability](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/12_enzyme_polymer_stable_analysis.ipynb) | {download}`12_enzyme_polymer_stable_analysis.ipynb <../notebooks/12_enzyme_polymer_stable_analysis.ipynb>` | Energy and RMSD diagnostics; system-specific inputs |
+| [Solvated polymer analysis](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/09_solvated_polymer_analysis.ipynb) | {download}`09_solvated_polymer_analysis.ipynb <../notebooks/09_solvated_polymer_analysis.ipynb>` | MDTraj notebook workflow |
+| [Polymer benchmark batch](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/10_polymer_benchmark_batch.ipynb) | {download}`10_polymer_benchmark_batch.ipynb <../notebooks/10_polymer_benchmark_batch.ipynb>` | Fixed workflow assumptions; import blockers |
+| [Enzyme docking setup](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/11_enzyme_docking_setup.ipynb) | {download}`11_enzyme_docking_setup.ipynb <../notebooks/11_enzyme_docking_setup.ipynb>` | Manual; verify ligand-only input; benchmark import blocker |
+| [Enzyme–polymer analysis](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/notebooks/12_enzyme_polymer_analysis.ipynb) | {download}`12_enzyme_polymer_analysis.ipynb <../notebooks/12_enzyme_polymer_analysis.ipynb>` | Energy and RMSD diagnostics; system-specific inputs |
 | [PHA–enzyme contacts](https://github.com/MMLabCodes/iPHAsimulatorV2/blob/main/src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb) | {download}`enzyme_contacts.ipynb <../src/md_simulation_scripts/enzyme_contacts/enzyme_contacts.ipynb>` | Reusable, validated preview; matching TPR/XTC required |
 
 The two `01_APO_*` files in `src/md_simulation_scripts/` are currently empty
