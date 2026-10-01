@@ -13,7 +13,7 @@ run during a documentation build.
 ## OpenMM: AMBER topology route
 
 1. Obtain matching `P3HB_4.prmtop` and `P3HB_4.inpcrd` from the GAFF2 step.
-2. Review §0 of notebook **06A1** and choose a fresh output folder.
+2. Choose a fresh output folder.
 3. Start with a deliberately short run after the source and engine checks pass:
 
 ```python
@@ -37,20 +37,20 @@ as skipped for nonperiodic input. Review stage logs, the final structure and
 `openmm_summary.log` before increasing the run length. These short settings are
 for a smoke test, not equilibration or convergence evidence.
 
-**Solvated OpenMM with Amber force fields is notebooks 06A1 (polymer in water) and
-06A2 (enzyme + polymer in water).** They build the system in OPC water with tleap
-(ff19SB for the protein) and write staged OpenMM run files whose protocols match
-the GROMACS notebooks 06B1 and 06B2.
+**Solvated OpenMM with Amber force fields is notebook 06A2 (enzyme + polymer in
+water).** It builds the system in OPC water with tleap (ff19SB for the protein) and
+writes staged OpenMM run files whose protocol matches the GROMACS notebook 06B2.
 
 ## GROMACS with CHARMM-GUI inputs
 
-For CGenFF/CHARMM36m systems prepared in CHARMM-GUI, use notebooks **06B1** (vacuum
-check from a Ligand Reader & Modeler download) and **06B2** (Solution Builder package).
+For CGenFF/CHARMM36m systems prepared in CHARMM-GUI, use notebooks **06B1** (polymer
+in water, built from a Ligand Reader & Modeler download) and **06B2** (enzyme + polymer,
+Solution Builder package).
 
 ## GROMACS from GAFF2/AMBER files (conversion helpers)
 
 The package can also convert GAFF2/AMBER files to GROMACS; the polymer-only benchmark
-systems were prepared this way.
+systems were prepared this way, and notebook **06A1** runs these steps for one system.
 
 1. Use the converter/preparation helpers to convert AMBER parameters
    with ParmEd and create a self-contained dry run folder.
