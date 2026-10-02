@@ -6,23 +6,25 @@ builder, or catalytic-activity predictor in this workflow.
 
 ## 1. Choose the polymer structure
 
-Notebook **11** expects a final benchmark structure at
-`examples/output/md_tests/benchmark/<system>/gromacs/solvated_polymer/step7_production.gro`.
-Review that path and confirm the intended system and final structure. Its
+Both enzyme workflows (05B → 06B and 05A → 06C) start from a docked enzyme–PHA complex
+PDB. Notebook **11** reads the polymer benchmark folder that notebook 10 writes,
+`examples/output/benchmark/<system>/gromacs/solvated_polymer/`, by default its final
+structure `step7_production.gro` (`GRO_NAME`; `step5_input.gro` is the structure before MD).
+Review that path and confirm the intended system and structure. Its
 benchmark import also depends on modules with [runtime blockers](../capabilities.md).
 
 ## 2. Prepare and inspect the PDB
 
-The notebook contains a local GRO-to-PDB converter and writes to
-`examples/output/docking_inputs/<system>/`. The converter loops over the GRO
-atoms; it does **not** automatically isolate PHA from a solvated system. Extract
-the intended ligand first or verify that the input already contains only the
-polymer. Inspect chain/residue identifiers, atom names, elements, terminal groups
-and unwanted solvent/ions in the exported PDB.
+The notebook writes the polymer only (residue `POLYMER_RESNAME`: `PHA` for 06A
+systems, `LIG` for CHARMM-GUI systems) to `examples/output/docking_inputs/<system>/`,
+with {py:func}`iphasimulator.docking_inputs.export_polymer_pdb`. Before writing it
+checks that the polymer is whole: every bonded heavy-atom pair (bonds from the
+topology) must be shorter than 0.3 nm. If not, it stops; use a whole-molecule frame
+instead, such as the representative frame from notebook 08 or `gmx trjconv -pbc mol`.
 
-This converter is notebook-local logic, not a separately supported package API.
-Do not assume its atom-name element inference or file formatting covers every
-possible input structure.
+Inspect chain/residue identifiers, atom names, elements and terminal groups in the
+exported PDB. Elements come from the topology masses (or the atom names); atoms and
+residues are renumbered from 1 in chain A, and no box record is written.
 
 ## 3. Prepare the enzyme separately
 

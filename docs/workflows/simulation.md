@@ -1,7 +1,8 @@
 # OpenMM and GROMACS preparation
 
 Choose one engine route after [parameterisation](gaff2.md). The 06-series
-notebooks are alternatives; you do not need to run all four in sequence.
+notebooks are alternatives (06A, 06B, 06C); pick one workflow, as listed in
+[the notebook catalogue](../notebooks.md#workflow-order).
 
 ```{warning}
 The AMBER OpenMM runner, AMBER-to-GROMACS converter and GROMACS preparation module
@@ -35,11 +36,15 @@ That call executes minimisation and dynamics; it is not just a file writer.
 The runner uses periodic handling when box vectors are present and records NPT
 as skipped for nonperiodic input. Review stage logs, the final structure and
 `openmm_summary.log` before increasing the run length. These short settings are
-for a smoke test, not equilibration or convergence evidence.
+for a smoke test, not equilibration or convergence evidence. The optional notebook
+`05A_quick_check_openmm.ipynb` runs this check (Optional quick check of 05A parameters:
+05A → 05A_quick_check_openmm); its run flag is off by default.
 
-**Solvated OpenMM with Amber force fields is notebook 06_optional (enzyme + polymer in
+**Solvated OpenMM with Amber force fields is notebook 06C (optional; enzyme + polymer in
 water).** It builds the system in OPC water with tleap (ff19SB for the protein) and
-writes staged OpenMM run files whose protocol matches the GROMACS notebook 06B.
+writes staged OpenMM run files with 06B's stage names and lengths. 06B reproduces the
+project's research simulations. 06C is a different force-field setup, so results are not
+directly comparable with 06B.
 
 ## GROMACS with CHARMM-GUI inputs
 

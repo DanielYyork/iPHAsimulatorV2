@@ -17,9 +17,9 @@ has been validated. Historical notebook outputs may predate current source error
 | Enzyme–PHA contacts | Reusable minimum-image distances, both heavy-atom modes, occupancies, plots and provenance | Proximity only; no affinity/catalysis/convergence inference |
 | Basic polymer analysis | Notebook Rg, end-to-end distance and SASA using MDTraj | Notebook-level workflow; requires meaningful selections and preprocessed coordinates |
 | Enzyme stability | Notebook energy and RMSD diagnostics | System-specific paths/selections; manual interpretation |
-| Docking preparation | Notebook GRO-to-PDB conversion and manual job records | No HADDOCK submission or validated complex builder; inspect/extract the polymer first |
+| Docking preparation | Notebook 11: polymer-only GRO-to-PDB export (after a whole-molecule check) and manual job records | No HADDOCK submission or validated complex builder; inspect the exported PDB |
 | CHARMM/CGenFF with GROMACS | 05B documents the CHARMM-GUI route with penalty and stereocentre checks; 06B prepares and checks GROMACS folders from CHARMM-GUI downloads (example dataset: `examples/data/charmm_gui_ANC55_P3HB4/`) | CGenFF and CHARMM-GUI steps are manual; minimisation runs only on request |
-| Solvated OpenMM (Amber force fields) | Notebook 06_optional: tleap GAFF2 + OPC (optional ff19SB protein), short OpenMM test, production script | tleap/OpenMM are mocked in tests; GAFF2 + OPC is not validated for PHA |
+| Solvated OpenMM (Amber force fields) | Notebook 06C (optional): tleap GAFF2 + OPC (optional ff19SB protein), short OpenMM test, production script; a different force-field setup from 06B | tleap/OpenMM are mocked in tests; GAFF2 + OPC is not validated for PHA |
 | Packing / script builders | Additional single-chain, melt and OpenMM script classes | Advanced, separate interfaces; not a fully unified end-to-end tutorial |
 | APO comparisons, catalytic geometry, repeat-unit contacts, ML/DFT | Not part of the reusable contact workflow | Planned or outside the documented v2 scope |
 

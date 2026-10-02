@@ -28,7 +28,8 @@ CHARMM-GUI download (job 9000069110). It is the default input of
 | `PHB4_R.sdf` | The R-configured PHA structure uploaded to Ligand Reader & Modeler (from iPHASimulator) |
 
 The files are byte-identical copies of the download (and of `PHB4_R.sdf`). This download
-has no `lig/lig_g.rtf`.
+has no `lig/lig_g.rtf`. In Solution Builder: Upload `lig_g.rtf` as topology and `lig.prm` as
+parameters. If your download has no `lig_g.rtf`, use `lig.rtf`; the charges are identical.
 
 **Left out**, to keep the dataset small and limited to what 06B reads:
 

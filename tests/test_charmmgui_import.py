@@ -2,6 +2,7 @@ import pytest
 
 from iphasimulator.charmmgui_import import (
     check_cgenff_penalties,
+    find_lig_topology,
     format_cgenff_penalty_report,
     penalty_category,
     penalty_grade,
@@ -118,3 +119,11 @@ def test_check_cgenff_penalties_skips_without_lig_folder(tmp_path):
 @pytest.mark.parametrize("penalty, grade", [(0, "GOOD"), (9.99, "GOOD"), (10, "CHECK"), (50, "CHECK"), (50.1, "POOR")])
 def test_penalty_grade(penalty, grade):
     assert penalty_grade(penalty) == grade
+
+
+def test_find_lig_topology_prefers_lig_g_then_lig_rtf(lig_dir, tmp_path):
+    assert find_lig_topology(lig_dir).name == "lig_g.rtf"
+    (lig_dir / "lig_g.rtf").unlink()
+    assert find_lig_topology(lig_dir).name == "lig.rtf"
+    assert find_lig_topology(tmp_path / "missing") is None
+    assert find_lig_topology(None) is None

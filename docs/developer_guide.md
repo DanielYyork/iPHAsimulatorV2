@@ -131,7 +131,7 @@ The simplified workflow is shorter and easier to debug, but it is less
 conservative for heterogeneous systems. The CHARMM-GUI-style workflow uses more
 equilibration stages so temperature, density, interfaces, and pressure coupling
 are relaxed gradually; it costs more wall-clock time and has more files to
-inspect. The detailed conceptual comparison belongs in notebook 05 so the 06
+inspect. The detailed conceptual comparison belongs in notebook 05A so the 06
 notebooks can stay focused on reproducible execution.
 
 The GAFF2 workflow records the exact AmberTools command for each stage, separate

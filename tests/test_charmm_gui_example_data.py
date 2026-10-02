@@ -56,3 +56,14 @@ def test_example_dataset_passes_every_06b_check(tmp_path):
     assert results[9].evidence.startswith("4/4 R")
     assert "#SBATCH --job-name=ANC55_P3HB4_gromacs" in (run_dir / "run_hpc_equilibration_production.slurm").read_text()
     assert _files(EXAMPLE) == before
+
+
+def test_charge_check_accepts_lig_g_rtf(tmp_path):
+    """lig_g.rtf has the same ATOM lines as lig.rtf without the penalty comments."""
+
+    lig_g = tmp_path / "lig_g.rtf"
+    lig_g.write_text("\n".join(line.split("!", 1)[0].rstrip() for line in (EXAMPLE / "lig" / "lig.rtf").read_text().splitlines()))
+
+    result = check_ligand_charges_match_rtf(EXAMPLE / "gromacs" / "topol.top", lig_g)
+
+    assert result.status == "PASS" and result.name == "LIG charges equal lig_g.rtf"

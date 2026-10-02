@@ -540,6 +540,19 @@ def check_ligand_stereocentres(
     return CheckResult(name, "PASS" if ok else "FAIL", shown)
 
 
+def find_lig_topology(lig_dir: str | Path | None) -> Path | None:
+    """The CGenFF topology in a ``lig/`` folder: ``lig_g.rtf``, or ``lig.rtf`` when there
+    is no ``lig_g.rtf`` (the charges are identical). ``None`` when neither exists."""
+
+    if lig_dir is None:
+        return None
+    for name in ("lig_g.rtf", "lig.rtf"):
+        path = Path(lig_dir).expanduser() / name
+        if path.is_file():
+            return path
+    return None
+
+
 def read_rtf_charges(rtf_path: str | Path) -> dict[str, tuple[str, float]]:
     """Atom name -> (CGenFF type, charge) from the ATOM lines of a CHARMM ``.rtf``."""
 
@@ -592,11 +605,12 @@ def check_ligand_charges_match_rtf(
     ligand: str = "LIG",
     tolerance: float = 1e-3,
 ) -> CheckResult:
-    """Every LIG atom in the GROMACS topology has the type and charge from ``lig.rtf``."""
+    """Every LIG atom in the GROMACS topology has the type and charge from the rtf
+    (``lig_g.rtf`` or ``lig.rtf``; their charges are identical)."""
 
-    name = f"{ligand} charges equal lig.rtf"
     if rtf_path is None:
-        return CheckResult(name, "SKIP", "no lig.rtf given")
+        return CheckResult(f"{ligand} charges equal lig_g.rtf / lig.rtf", "SKIP", "no lig_g.rtf or lig.rtf given")
+    name = f"{ligand} charges equal {Path(rtf_path).name}"
     molecule = _find_molecule(read_topology_molecules(topology_path), ligand)
     if molecule is None:
         return CheckResult(name, "FAIL", f"no [ moleculetype ] {ligand}")

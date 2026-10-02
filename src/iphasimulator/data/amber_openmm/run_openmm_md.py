@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Staged OpenMM MD for an Amber system (system.prmtop / system.inpcrd).
 
-Written by iPHASimulator (notebook 06_optional). The stages and file names mirror
+Written by iPHASimulator (notebook 06C). The stages and file names mirror
 the GROMACS run folders: step6.0_minimization, step6.1_nvt, step6.2_npt and
 step7_production. All settings come from protocol.json next to this script.
 

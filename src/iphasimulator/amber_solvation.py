@@ -1,10 +1,12 @@
 """Amber/OpenMM solvated systems: tleap (GAFF2 + OPC, optional ff19SB) and staged OpenMM MD.
 
-The MD protocols mirror the CHARMM/GROMACS references: POLYMER_IN_WATER_PROTOCOL
-follows the polymer benchmark (notebook 06A) and ENZYME_POLYMER_IN_WATER_PROTOCOL
-the enzyme–polymer production runs (notebook 06B); only the non-bonded settings are
-Amber's. ``tleap`` and OpenMM run only when a ``build_``/``run_`` function or the
-generated ``run_openmm_md.py`` is called; everything else writes text files.
+The stage lengths, temperatures and restraints follow the GROMACS references:
+POLYMER_IN_WATER_PROTOCOL the polymer benchmark (notebook 06A) and
+ENZYME_POLYMER_IN_WATER_PROTOCOL the enzyme–polymer production runs (notebook 06B).
+The force fields, thermostat, barostat and non-bonded settings differ (Amber/OpenMM),
+so 06C results are not directly comparable with 06B. ``tleap`` and OpenMM run only
+when a ``build_``/``run_`` function or the generated ``run_openmm_md.py`` is called;
+everything else writes text files.
 """
 
 from __future__ import annotations

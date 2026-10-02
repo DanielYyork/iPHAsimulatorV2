@@ -267,7 +267,7 @@ parameters, so no GAFF2 charges enter them.
 
 Use the CHARMM/GROMACS route for protein–polymer systems that should stay in one consistent
 CHARMM force-field family. Use the Amber/OpenMM route (`05A_amber_gaff2_parameters.ipynb` →
-`06_optional_gaff2_openmm_pha_enzyme_in_water.ipynb`) for the Amber family (GAFF2 / ff19SB / OPC)
+`06C_optional_gaff2_openmm_pha_enzyme_in_water.ipynb`) for the Amber family (GAFF2 / ff19SB / OPC)
 in OpenMM.
 
 ### CHARMM-GUI tools
@@ -295,8 +295,7 @@ structure shown in Marvin JS: CHARMM-GUI builds the topology from that drawing, 
 | `lig.prm` | CGenFF parameters by analogy, with a penalty on every parameter |
 | `lig.log`, `ndihe.str` | CGenFF log and extra dihedrals |
 
-`lig_g.rtf` and `lig.prm` are what Solution Builder asks for in 06B ("Upload CHARMM top & par for
-hetero chain").
+Solution Builder asks for these in 06B ("Upload CHARMM top & par for hetero chain"). Upload `lig_g.rtf` as topology and `lig.prm` as parameters. If your download has no `lig_g.rtf`, use `lig.rtf`; the charges are identical.
 
 ### Open items
 
@@ -316,6 +315,11 @@ hetero chain").
   byte-identical to CHARMM-GUI job **8214536317** (22 June 2026, 137,360 atoms), not to the later
   rebuild 8221445616 (23 June, 137,363 atoms). Both builds have the same LIG types and charges,
   and all four LIG stereocentres are R in both.
+- *Moved from 06B's introduction (2026-10-02):* run folders prepared by 06B match the production
+  inputs, by file comparison. For GK13_P3HO_4, a folder prepared from CHARMM-GUI job 8214536317's
+  download (docking pose `GK13_PHO4_pose2_complex.pdb`) is byte-identical to the production input.
+  For ANC55_P3HB4, the CHARMM-GUI files equal those of job 9000069110's download, and the production
+  `step6.2_npt.mdp` differs from the packaged one only in `ref_p = 1.` vs `1.0`.
 - *Caution:* the April PHO4 Ligand Reader download (job 7687539766) used for the version and
   charge evidence above contains the **S** enantiomer (all four stereocentres S in its
   `drawing_3D.mol` and `ligandrm.pdb`). Its CGenFF version, penalties and per-atom charges are
