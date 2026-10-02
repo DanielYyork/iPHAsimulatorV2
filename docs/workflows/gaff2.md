@@ -26,9 +26,9 @@ output_dir = Path("examples/output/md_tests/P3HB_4/gaff2")
 ## 2. Select the charge model deliberately
 
 The default is `charge_method="abcg2"` (ABCG2). AM1-BCC (`charge_method="bcc"`)
-is also supported; the project's benchmark and enzyme–PHA research runs used
-`bcc`. Faster/debug charge choices are not automatically interchangeable
-with a validated production model.
+is also supported; the project's polymer-only benchmark systems used `bcc`.
+Faster/debug charge choices are not automatically interchangeable with a
+validated production model.
 
 When ready to run the external tools:
 

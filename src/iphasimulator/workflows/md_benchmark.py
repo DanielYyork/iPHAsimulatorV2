@@ -303,7 +303,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--charge-method",
         choices=CHARGE_METHODS,
         default="abcg2",
-        help="antechamber charge method (default abcg2). Existing project benchmark/enzyme runs used bcc.",
+        help="antechamber charge method (default abcg2). The existing polymer-only benchmark systems used bcc.",
     )
     parser.add_argument(
         "--skip-am1-bcc",

@@ -5,9 +5,10 @@ and enzyme-contact notebooks use Python analysis dependencies.
 
 ## Parameterisation provenance
 
-The GK13/ANC45 × P3HO4/P3HB4 production simulations analysed here used GAFF2 with
-AM1-BCC charges (antechamber -c bcc). The iPHASimulator package now defaults to
-ABCG2 for new systems.
+The GK13/ANC45 × P3HO4/P3HB4 production simulations analysed here used the CHARMM/GROMACS route:
+CHARMM36m + CGenFF (via CHARMM-GUI Ligand Reader & Modeler, from iPHASimulator's
+R-configured SDF/PDB) + CHARMM TIP3P + SOD/CLA in GROMACS. No GAFF2 charges enter
+them.
 
 ```text
 src/md_simulation_scripts/
@@ -251,3 +252,97 @@ are superseded by the two standalone templates. Use this script with the plain
 instruction file; do not pass it to the older Python YAML workflow. Existing
 shared package helpers and `notebooks/08_trajectory_preprocessing.ipynb` remain
 available for their separate workflows. The templates do not depend on them.
+
+## CGenFF / CHARMM-GUI provenance notes
+
+Moved here from `notebooks/05B_charmm_cgenff_parameters.ipynb` (2026-10-01), when 05B was
+simplified for non-computational users.
+
+### Production runs and route choice
+
+The enzyme–PHA production simulations (GK13/ANC45 × P3HO_4/P3HB_4) used the CHARMM/GROMACS route:
+polymer **CGenFF** via CHARMM-GUI Ligand Reader & Modeler · protein **CHARMM36m** · water/ions
+**CHARMM TIP3P + SOD/CLA** · engine **GROMACS**. CGenFF assigned all atom types, charges and
+parameters, so no GAFF2 charges enter them.
+
+Use the CHARMM/GROMACS route for protein–polymer systems that should stay in one consistent
+CHARMM force-field family. Use the Amber/OpenMM route (`05A_amber_gaff2_parameters.ipynb` →
+`06C_optional_gaff2_openmm_pha_enzyme_in_water.ipynb`) for the Amber family (GAFF2 / ff19SB / OPC)
+in OpenMM.
+
+### CHARMM-GUI tools
+
+- [CHARMM-GUI](https://www.charmm-gui.org)
+- [Ligand Reader & Modeler](https://www.charmm-gui.org/?doc=input/ligandrm): CGenFF atom types,
+  charges and parameters for a non-standard molecule.
+- [Solution Builder](https://www.charmm-gui.org/?doc=input/solution): solvated box, ions and
+  engine-specific inputs (GROMACS here).
+- [Polymer Builder](https://www.charmm-gui.org/?doc=input/polymer): Choi et al., *J. Chem. Theory
+  Comput.* 2021, [doi:10.1021/acs.jctc.1c00169](https://doi.org/10.1021/acs.jctc.1c00169). PHA
+  monomer support not verified.
+
+### Ligand Reader & Modeler input and output
+
+Input: the R-configured SDF exported by `04_export_structures.ipynb`, one per oligomer:
+`PHB4_R.sdf`, `PHB8_R.sdf`, `PHO4_R.sdf`, `PHO8_R.sdf`, `PHDD4_R.sdf`, `PHDD8_R.sdf`. Check the
+structure shown in Marvin JS: CHARMM-GUI builds the topology from that drawing, so the chirality
+(all backbone stereocentres R), the bond orders and the explicit hydrogens must be correct.
+
+| File (in `lig/`) | Content |
+| --- | --- |
+| `lig.rtf` | CGenFF topology, with a charge penalty on every atom |
+| `lig_g.rtf` | the same topology with charge groups |
+| `lig.prm` | CGenFF parameters by analogy, with a penalty on every parameter |
+| `lig.log`, `ndihe.str` | CGenFF log and extra dihedrals |
+
+Solution Builder asks for these in 06B ("Upload CHARMM top & par for hetero chain"). Upload `lig_g.rtf` as topology and `lig.prm` as parameters. If your download has no `lig_g.rtf`, use `lig.rtf`; the charges are identical.
+
+### Open items
+
+- TODO(Zhiwen): CGenFF version used for the production systems (read it from the `lig.rtf` /
+  `lig.prm` header).
+  *Evidence from the PHO4 Ligand Reader download (Apr 2026):* CGenFF program version 4.0
+  (released June 2024), for CGenFF topology and parameter files version 5.0.
+- TODO(Zhiwen): which rtf (`lig.rtf` or `lig_g.rtf`) the GROMACS `LIG.itp` charges came from.
+  *Evidence from the PHO4 Ligand Reader download (Apr 2026):* `lig.rtf` and `lig_g.rtf` give
+  identical per-atom charges (99/99 atoms; `lig_g.rtf` only regroups them), and `gromacs/LIG.itp`
+  matches both (net charge 0). Confirm for the production systems.
+- TODO(Zhiwen): how the enzyme–polymer starting pose was obtained (docking; the complexes are
+  named `..._pose2_complex.pdb`).
+  *Evidence from the Solution Builder downloads:* the GK13–PHO4 builds start from
+  `GK13_PHO4_pose2_complex.pdb` (docking pose 2).
+- *Production provenance (checked 2026-09-30):* the GK13_P3HO_4 production input is
+  byte-identical to CHARMM-GUI job **8214536317** (22 June 2026, 137,360 atoms), not to the later
+  rebuild 8221445616 (23 June, 137,363 atoms). Both builds have the same LIG types and charges,
+  and all four LIG stereocentres are R in both.
+- *Moved from 06B's introduction (2026-10-02):* run folders prepared by 06B match the production
+  inputs, by file comparison. For GK13_P3HO_4, a folder prepared from CHARMM-GUI job 8214536317's
+  download (docking pose `GK13_PHO4_pose2_complex.pdb`) is byte-identical to the production input.
+  For ANC55_P3HB4, the CHARMM-GUI files equal those of job 9000069110's download, and the production
+  `step6.2_npt.mdp` differs from the packaged one only in `ref_p = 1.` vs `1.0`.
+- *Caution:* the April PHO4 Ligand Reader download (job 7687539766) used for the version and
+  charge evidence above contains the **S** enantiomer (all four stereocentres S in its
+  `drawing_3D.mol` and `ligandrm.pdb`). Its CGenFF version, penalties and per-atom charges are
+  unaffected by chirality, but do not use its coordinates for an R system.
+
+### Quality checklist
+
+- **CGenFF penalties:** below 10 the analogy is fair; 10–50 basic validation is recommended;
+  above 50 the parameters need extensive validation or optimisation.
+- **Stereochemistry:** every backbone stereocentre must be R in the SDF sent to CHARMM-GUI
+  (RDKit CIP labels from the 3D coordinates) and still R after CHARMM-GUI (signed-volume check in
+  06B).
+- **`[ defaults ]`** in the GROMACS topology is CHARMM-style: `1 2 yes 1.0 1.0`.
+- **Net charge and ion counts** match the intended system (checked in 06B).
+
+### Files to keep
+
+Keep the whole Ligand Reader & Modeler download (`lig/`, `toppar/`, `gromacs/`, `ligandrm.*`)
+together with the exact SDF you uploaded. Treat them as one matched set: atom names, charges and
+parameters in these files belong together.
+
+### Limitations
+
+- CGenFF targets drug-like small molecules; PHA oligomer parameters are assigned by analogy.
+- There is no PHA-specific validation of these parameters. Review penalties and, for production
+  work, consider targeted validation of the highest-penalty terms.

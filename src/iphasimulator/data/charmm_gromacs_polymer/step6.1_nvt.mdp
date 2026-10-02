@@ -1,0 +1,32 @@
+; Polymer-only CGenFF (CHARMM) NVT equilibration
+; Same protocol as the GAFF2 polymer benchmark; non-bonded settings are CHARMM's
+; (1.2 nm cut-offs, vdW force-switch from 1.0 nm), as CGenFF/CHARMM36 require.
+; Length: 100 ps (50000 steps x 0.002 ps).
+; Conditions: NVT at 300 K, V-rescale thermostat, no pressure coupling.
+; Initial velocities are generated in this stage.
+integrator              = md
+nsteps                  = 50000
+dt                      = 0.002
+continuation            = no
+constraint_algorithm    = lincs
+constraints             = h-bonds
+cutoff-scheme           = Verlet
+nstlist                 = 20
+rlist                   = 1.2
+coulombtype             = PME
+rcoulomb                = 1.2
+vdwtype                 = Cut-off
+vdw-modifier            = Force-switch
+rvdw_switch             = 1.0
+rvdw                    = 1.2
+tcoupl                  = V-rescale
+tc-grps                 = System
+tau_t                   = 1.0
+ref_t                   = 300
+pcoupl                  = no
+pbc                     = xyz
+gen_vel                 = yes
+gen_temp                = 300
+gen_seed                = -1
+nstenergy               = 500
+nstlog                  = 500
