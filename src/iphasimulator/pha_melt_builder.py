@@ -570,10 +570,10 @@ Packed {' '.join(polymer_names)}
         itp_files,
         output_file,
     ):
-        skip_sections = {
-            "[ defaults ]",
-            "[ atomtypes ]",
-        }
+        shared_sections = {"defaults", "atomtypes"}
+        # ACPYPE TOP files describe one complete single-chain system. Only
+        # definitions belong in the melt include: its TOP supplies the counts.
+        system_sections = {"system", "molecules"}
 
         with open(output_file, "w") as outfile:
             for idx, file_path in enumerate(itp_files):
@@ -583,22 +583,15 @@ Packed {' '.join(polymer_names)}
                 copy_block = True
 
                 for line in lines:
-                    stripped = line.strip().lower()
-
-                    if any(
-                        stripped.startswith(section)
-                        for section in skip_sections
-                    ):
-                        if idx > 0:
-                            copy_block = False
-                            continue
-
-                    if (
-                        stripped.startswith("[")
-                        and stripped.endswith("]")
-                        and stripped not in skip_sections
-                    ):
-                        copy_block = True
+                    header = re.fullmatch(
+                        r"\s*\[\s*([^\]]+?)\s*\]\s*",
+                        line.split(";", 1)[0],
+                    )
+                    if header:
+                        section = header.group(1).strip().lower()
+                        copy_block = section not in system_sections and not (
+                            idx > 0 and section in shared_sections
+                        )
 
                     if copy_block:
                         outfile.write(line)
