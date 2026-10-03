@@ -31,6 +31,7 @@ External programs required:
 """
 import subprocess
 import shutil
+import re
 from pathlib import Path
 
 from openbabel import pybel
@@ -141,6 +142,8 @@ root_dir : str or pathlib.Path, optional
         Geometry preparation occurs before the first Antechamber command.
         Therefore the atomic charges requested through ``charge_model`` are
         assigned using the selected prepared trimer geometry.
+        Repeated AC bonds are removed after conversion, without changing
+        atom records, charges, atom types or retained bond orders.
         """
         self.paths.create_PHA_type_dir(PHA_type)
         self.residue_codes.register_PHA_type(PHA_type=PHA_type, trimer_name=trimer_name, trimer_smiles=trimer_smiles, monomer_smiles=monomer_smiles)
@@ -175,6 +178,8 @@ root_dir : str or pathlib.Path, optional
         
         antechamber_ac_command = f'antechamber -fi mol2 -fo ac -i {mol2_file} -o {ac_file} -c {charge_model.lower()} -s 2'
         self.run_command(antechamber_ac_command, workdir=temp_dir)
+        removed_bonds = self.remove_duplicate_ac_bonds(ac_file)
+        print(f'Removed {removed_bonds} duplicate AC bond records.')
         
         print('\nTrimer parameterisation complete.')
         print('PHA type:     ', PHA_type)
@@ -208,6 +213,48 @@ root_dir : str or pathlib.Path, optional
             ),
         }
    
+    @staticmethod
+    def remove_duplicate_ac_bonds(ac_file):
+        """Keep one AC bond per unordered atom pair and return removal count.
+
+        Preserve all non-bond records byte-for-byte. Retain the first bond
+        record and renumber retained bonds consecutively when duplicates
+        exist. Conflicting orders for the same pair raise before any write.
+        """
+        ac_file = Path(ac_file)
+        lines = ac_file.read_bytes().splitlines(keepends=True)
+        seen = {}
+        retained = []
+        removed = 0
+        for line in lines:
+            fields = line.split()
+            if fields and fields[0] == b'BOND':
+                pair = tuple(sorted((int(fields[2]), int(fields[3]))))
+                order = fields[4]
+                if pair in seen:
+                    if seen[pair] != order:
+                        raise ValueError(
+                            f'Conflicting AC bond orders for atoms {pair} in {ac_file}'
+                        )
+                    removed += 1
+                    continue
+                seen[pair] = order
+            retained.append(line)
+
+        if removed:
+            number = 0
+            for index, line in enumerate(retained):
+                if line.split()[:1] == [b'BOND']:
+                    number += 1
+                    match = re.match(rb'(\s*BOND)(\s+)(\d+)', line)
+                    retained[index] = (
+                        match[1]
+                        + str(number).encode().rjust(len(match[2]) + len(match[3]))
+                        + line[match.end():]
+                    )
+            ac_file.write_bytes(b''.join(retained))
+        return removed
+
     def generate_polymer_prepins(self, PHA_type):
         """
         Generate head, mainchain and tail prepin files for a PHA type.
