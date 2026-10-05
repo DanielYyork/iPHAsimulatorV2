@@ -71,7 +71,13 @@ def write_protein_pdb(
     residues: set[tuple[str, int]] = set()
     histidines: dict[int, str] = {}
     removed = 0
+    previous_chain = None
     for line in Path(complex_pdb).read_text().splitlines():
+        if line.startswith("TER"):
+            if lines and lines[-1] != "TER":
+                lines.append("TER")
+            previous_chain = None
+            continue
         if not line.startswith(("ATOM", "HETATM")):
             continue
         resname = line[17:21].strip()
@@ -82,14 +88,21 @@ def write_protein_pdb(
             continue
         resnum = int(line[22:26])
         if resname in HISTIDINE_NAMES:
-            resname = histidine_states.get(resnum, "HIS")
+            resname = histidine_states.get(resnum, CHARMM_TO_AMBER_HISTIDINE.get(resname, resname))
             histidines[resnum] = resname
             line = f"{line[:17]}{resname:<3} {line[21:]}"
+        if previous_chain is not None and line[21] != previous_chain:
+            lines.append("TER")
+        previous_chain = line[21]
         residues.add((line[21], resnum))
         lines.append(line)
     if not lines:
         raise ValueError(f"No protein atoms found in {complex_pdb}")
-    Path(output_pdb).write_text("\n".join(lines) + "\nTER\nEND\n")
+    if histidine_states and len({chain for chain, _ in residues}) > 1:
+        raise ValueError("Residue-number histidine mapping requires a single protein chain")
+    if lines[-1] != "TER":
+        lines.append("TER")
+    Path(output_pdb).write_text("\n".join(lines) + "\nEND\n")
     return ProteinPdbSummary(Path(output_pdb), len(residues), removed, histidines)
 
 
@@ -120,6 +133,17 @@ def pose_polymer_mol2(
     mol2_elements = [_mol2_element(row) for row in atom_rows]
     if mol2_elements != [atom.GetSymbol() for atom in template.GetAtoms()]:
         raise ValueError("The mol2 and template SDF atoms are not in the same order")
+    expected_bonds = {tuple(sorted((b.GetBeginAtomIdx() + 1, b.GetEndAtomIdx() + 1))) for b in template.GetBonds()}
+    mol2_bonds = set()
+    in_bonds = False
+    for line in mol2_lines:
+        if line.startswith("@<TRIPOS>"):
+            in_bonds = line.strip() == "@<TRIPOS>BOND"
+        elif in_bonds and line.strip():
+            fields = line.split()
+            mol2_bonds.add(tuple(sorted((int(fields[1]), int(fields[2])))))
+    if mol2_bonds != expected_bonds:
+        raise ValueError("The mol2 and template SDF bond connectivity/order do not agree")
 
     pose_lines = [
         line for line in Path(complex_pdb).read_text().splitlines()
@@ -185,6 +209,10 @@ def pose_polymer_mol2(
     Chem.AssignStereochemistryFrom3D(posed)
     centres = Chem.FindMolChiralCenters(posed, includeUnassigned=True, useLegacyImplementation=False)
     stereocentres = [(atom_rows[index][1], label) for index, label in centres]
+
+    template_centres = Chem.FindMolChiralCenters(template, includeUnassigned=True, useLegacyImplementation=False)
+    if not centres or len(centres) != len(template_centres) or any(label != "R" for _, label in centres):
+        raise ValueError("The docked PHA does not preserve all template R stereocentres")
 
     _write_mol2_with_coordinates(mol2_lines, atom_rows, [positions[i] for i in range(template.GetNumAtoms())], Path(output_mol2))
     return PoseTransferResult(Path(output_mol2), len(heavy_indices), template.GetNumAtoms() - len(heavy_indices), stereocentres)

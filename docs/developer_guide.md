@@ -3,7 +3,7 @@
 > **Historical design notes:** this document is preserved from the earlier
 > implementation. Some scope/status statements below predate the current
 > GROMACS, packing, GUI and docking-preparation code. Use
-> [current capabilities and blockers](capabilities.md) for the inspected status,
+> [current capabilities and limits](capabilities.md) for the inspected status,
 > and [documentation maintenance](contributing_docs.md) to edit or build the site.
 
 ## Scope
@@ -43,7 +43,7 @@ Residue-level database entries should use the head/main/tail suffixes.
 - `src/iphasimulator/workflows/` contains reusable workflow helpers for tutorials and examples.
 - `notebooks/` contains separate step-by-step Jupyter tutorials written for
   users who may not be computational specialists.
-- `examples/` contains thin command-line scripts only.
+- `examples/` contains command-line scripts, workflow configurations and documented input datasets.
 - `examples/output/` contains generated structures and MD outputs.
 - `tests/` contains automated checks for package behaviour.
 
@@ -175,3 +175,14 @@ conda install -c conda-forge ambertools openmm parmed mdtraj -y
 - GROMACS
 - GUI
 - general polymer chemistry outside 3-hydroxyalkanoate PHA construction
+
+## Completed teaching routes
+
+The current preparation routes are 05A → 06A (GAFF2/GROMACS polymer in water),
+05B → 06B (CGenFF/CHARMM36m/GROMACS enzyme–PHA), and optional 05A → 06C
+(ff19SB/GAFF2/OPC/OpenMM enzyme–PHA). 06B uses the packaged `charmm_gromacs`
+minimisation/NVT/NPT/production templates, not the separate six-stage membrane
+template described in the historical design notes above. Consult the
+[notebook catalogue](notebooks.md) and [06B–06C comparison](workflows/optional_openmm.md)
+for current filenames, dependencies and conditions. Research scripts are maintained
+separately under `src/md_simulation_scripts/`.

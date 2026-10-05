@@ -20,13 +20,12 @@ Python helpers for polyhydroxyalkanoates (PHAs).
 | Completed MD outputs | [Preprocessing](workflows/trajectory.md) → [analysis](workflows/analysis.md) | Processed trajectories, plots and tables |
 | A candidate enzyme–PHA pair | [Docking preparation](workflows/docking.md) | Inputs and records for a manual docking workflow |
 
-```{important}
-This checkout contains existing Python import-order errors in several construction,
-export and MD modules. The affected tutorials describe the implemented interfaces
-but cannot currently be run unchanged. The contact-analysis and trajectory helpers
-are separate. See [current capabilities and blockers](capabilities.md) before
-choosing a workflow. Documentation builds do not execute any simulation or notebook.
-```
+The teaching notebooks in `notebooks/` cover construction, parameter preparation,
+simulation setup and selected analysis examples. Research analysis in
+`src/md_simulation_scripts/` requires existing trajectories and system-specific
+paths; it is separate from the teaching sequence. Read [the notebook catalogue](notebooks.md)
+for prerequisites and run order. Documentation builds do not execute notebooks.
+
 
 The naming distinguishes the monomer (`3HB`), polymer (`P3HB`), and a chain with
 four repeats (`P3HB_4`). The [quick-start](quickstart.md) explains construction,
@@ -48,6 +47,7 @@ capabilities
 workflows/design
 workflows/gaff2
 workflows/simulation
+workflows/optional_openmm
 workflows/hpc
 workflows/trajectory
 enzyme_trajectory_processing

@@ -57,13 +57,11 @@ certify every module. For contact analysis, also check:
 python -c "import MDAnalysis, matplotlib; from iphasimulator.analysis_contacts import ContactConfig; print('Contact imports OK')"
 ```
 
-```{warning}
-Some package modules currently fail with `SyntaxError: from __future__ imports
-must occur at the beginning of the file`. Reinstalling dependencies does not fix
-that source-code issue. The affected modules and tutorial limitations are listed
-in [capabilities](capabilities.md). Python sources are preserved by this
-documentation work.
-```
+For 06C, verify `tleap` is on PATH and `import openmm` succeeds in the
+same notebook kernel. For 06A/06B execution, verify `gmx --version`. Activate
+the environment before starting Jupyter; a Python import check does not prove
+that external command-line tools are available.
+
 
 ## 5. Open a notebook
 

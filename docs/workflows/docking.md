@@ -10,8 +10,9 @@ Both enzyme workflows (05B → 06B and 05A → 06C) start from a docked enzyme�
 PDB. Notebook **11** reads the polymer benchmark folder that notebook 10 writes,
 `examples/output/benchmark/<system>/gromacs/solvated_polymer/`, by default its final
 structure `step7_production.gro` (`GRO_NAME`; `step5_input.gro` is the structure before MD).
-Review that path and confirm the intended system and structure. Its
-benchmark import also depends on modules with [runtime blockers](../capabilities.md).
+Review that path and confirm the intended system and structure. The
+benchmark needs actual generated input files; the package does not distribute
+completed benchmark trajectories.
 
 ## 2. Prepare and inspect the PDB
 

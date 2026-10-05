@@ -101,6 +101,11 @@ class OpenMMProtocol:
     minimization_tolerance: float = 1000.0
     backbone_restraint: float = 0.0
     sidechain_restraint: float = 0.0
+    npt_frame_ps: float | None = None
+    nvt_report_ps: float | None = None
+    npt_report_ps: float | None = None
+    constraint_tolerance: float = 1e-5
+    ewald_error_tolerance: float = 5e-4
 
 
 # Polymer benchmark (06A): 300 K, no restraints, 100 ps NVT, 500 ps NPT, 100 ns, frames every 2 ps.
@@ -130,8 +135,18 @@ ENZYME_POLYMER_IN_WATER_PROTOCOL = OpenMMProtocol(
     production_ns=200.0,
     production_frame_ps=100.0,
     equilibration_frame_ps=5.0,
+    npt_frame_ps=100.0,
+    nvt_report_ps=1.0,
+    npt_report_ps=2.0,
+    report_ps=2.0,
     backbone_restraint=400.0,
     sidechain_restraint=40.0,
+)
+
+# Solution Builder settings in 06B, applied to the complete complex in tleap.
+# CHARMM-GUI fits the box to the protein; dimensions/ion counts need not be identical.
+ENZYME_SOLVATION_SETTINGS = AmberSolvationSettings(
+    padding_nm=3.0, box_shape="box", cubic=False, salt_molar=0.05,
 )
 
 
@@ -251,6 +266,8 @@ def build_solvated_amber_system(
 
     write_tleap_input(output / COUNT_INPUT, **names)
     count = parse_tleap_log(_run_tleap(output, COUNT_INPUT, COUNT_LOG, tleap, runner))
+    if count.errors:
+        raise RuntimeError(f"tleap reported {count.errors} error(s); see {output / COUNT_LOG}")
     if count.water_count is None:
         raise RuntimeError(f"Could not read the number of added waters from {output / COUNT_LOG}")
     pairs = salt_ion_pairs(count.water_count, settings.salt_molar)
@@ -366,9 +383,12 @@ HPC_SCRIPT_TEMPLATE = """#!/bin/bash -l
 # Activate a Python environment with OpenMM (CUDA build), for example:
 # module load anaconda3 && conda activate ipha_clean
 
+set -euo pipefail
+cd "${SLURM_SUBMIT_DIR:-$PWD}"
+
 mkdir -p logs
 
 # Steps 6.1 (NVT), 6.2 (NPT) and 7 (production); settings in protocol.json.
-# Production continues from step7_production.chk when the job is resubmitted.
+# Each MD stage continues from its own checkpoint; completed stages take no new steps.
 python run_openmm_md.py step6.1_nvt step6.2_npt step7_production --platform CUDA
 """

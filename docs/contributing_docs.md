@@ -26,7 +26,7 @@ your MD environment: it does not install or import the simulation package.
 | Homepage/navigation | `docs/index.md` |
 | Installation or first example | `docs/installation.md`, `docs/quickstart.md` |
 | Workflow tutorial | `docs/workflows/*.md` |
-| Current support / blockers | `docs/capabilities.md` |
+| Current support / limits | `docs/capabilities.md` |
 | Notebook downloads | `docs/notebooks.md` |
 | API descriptions | Docstrings in `src/iphasimulator/`; generated pages are not edited |
 | Theme, extensions or API settings | `docs/conf.py` |
@@ -93,12 +93,13 @@ Open **http://127.0.0.1:8000/** in your browser. Rebuild after editing, then
 refresh. Stop the server with `Ctrl+C`. This serves only on your computer and
 does not publish the documentation.
 
-## 5. Enable GitHub Pages when ready
+## 5. Publish through the existing GitHub Pages workflow
 
-No push, repository-setting change or deployment was performed during local
-implementation. Once the changes have been reviewed and you choose to publish:
+Pages already uses GitHub Actions for this repository. Respect `main` protection:
+submit a pull request and obtain its required approving review before merging.
+Do not use the account’s bypass to push directly to `main`. After review:
 
-1. Commit and push/merge the documentation to `main` in
+1. Commit to a topic branch and merge the approved pull request to `main` in
    `MMLabCodes/iPHAsimulatorV2`.
 2. In the repository, open **Settings → Pages → Build and deployment** and set
    **Source: GitHub Actions**.

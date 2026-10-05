@@ -4,12 +4,7 @@ Choose one engine route after [parameterisation](gaff2.md). The 06-series
 notebooks are alternatives (06A, 06B, 06C); pick one workflow, as listed in
 [the notebook catalogue](../notebooks.md#workflow-order).
 
-```{warning}
-The AMBER OpenMM runner, AMBER-to-GROMACS converter and GROMACS preparation module
-currently have [import blockers](../capabilities.md#import-blockers). This page
-describes their implemented interfaces and required handoffs. No simulation is
-run during a documentation build.
-```
+
 
 ## OpenMM: AMBER topology route
 
@@ -76,3 +71,10 @@ Notebook links: [06A–06B](../notebooks.md#parameterisation-and-simulation).
 API: {py:func}`iphasimulator.conversion_amber_to_gromacs.convert_amber_to_gromacs`,
 {py:func}`iphasimulator.simulation_gromacs_runner.prepare_gromacs_run_folder`,
 {py:func}`iphasimulator.simulation_gromacs_runner.validate_gromacs_coordinate_topology_counts`.
+
+## Optional 06C: conditions and generated files
+
+Use the [06C guide and 06B–06C comparison](optional_openmm.md) for the required
+docked complex, same-oligomer MOL2/FRCMOD/SDF files, matched salt/box/output
+conditions and checkpoint compatibility. 06C’s `system.prmtop`/`system.inpcrd`
+are a new solvated-complex pair from tleap, not the dry 05A files.

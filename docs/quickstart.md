@@ -3,17 +3,10 @@
 **Goal:** create one linear oligomer with four 3HB repeat units and export
 `P3HB_4.sdf` and `P3HB_4.pdb`. This is structure preparation, not an MD simulation.
 
-```{warning}
-**Current checkout: runtime blocked.** `build.py`, `monomers.py`,
-`stereochemistry.py` and `export.py` contain misplaced future imports. The
-existing API calls below have been checked against their definitions, but this
-complete example cannot run until those source errors are repaired. They have
-not been changed as part of the documentation. See [the blocker list](capabilities.md#import-blockers).
-```
+
 
 This tutorial combines the existing construction, validation and export notebooks
-([01, 03 and 04](notebooks.md#construction-and-design)). Once the import blockers
-are resolved, run these steps in order from the repository root using the
+([01, 03 and 04](notebooks.md#construction-and-design)). Run these steps in order from the repository root using the
 [core environment](installation.md).
 
 ## 1. Construct the oligomer

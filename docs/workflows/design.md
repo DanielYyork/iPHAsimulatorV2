@@ -3,10 +3,7 @@
 **Inputs:** one monomer code, alkyl side-chain length, or custom R 3-hydroxy-acid
 SMILES, plus a repeat count. **Output:** a named RDKit molecule.
 
-```{warning}
-The RDKit design helpers currently inherit the [construction import blockers](../capabilities.md#import-blockers).
-The examples describe existing interfaces; they are not executed by the site.
-```
+
 
 ## 1. Choose one design mode
 
