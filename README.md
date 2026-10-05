@@ -3,8 +3,8 @@
 Documentation: [homepage](https://mmlabcodes.github.io/iPHAsimulatorV2/), [installation](docs/installation.md),
 [P3HB_4 quick-start](docs/quickstart.md), and
 [editing, local preview and GitHub Pages](docs/contributing_docs.md).
-The [current capability audit](docs/capabilities.md) records existing import
-blockers that affect some workflows described below.
+The [current capability audit](docs/capabilities.md) separates runnable teaching
+workflows, external-tool prerequisites and research-analysis limitations.
 
 <p align="center">
   <img src="docs/logo.png" alt="iPHAsimulator logo" width="400"/>
@@ -83,7 +83,7 @@ typing names manually in notebooks or scripts.
 |---|---|---|
 | Polymer generation | Working | Curated PHA names, side-chain based generation, and custom monomers are implemented in `src/iphasimulator`. |
 | GAFF2/Amber parameterisation | Working | AmberTools workflow writes GAFF2 `mol2`, `frcmod`, `prmtop`, `inpcrd`, logs, and timing files. |
-| CHARMM/CGenFF parameterisation | In progress | Notebook `05B` documents the CHARMM/CGenFF handoff route; it is not yet equivalent to the GAFF2 workflow. |
+| CHARMM/CGenFF parameterisation | Manual website workflow + checks | `05B` checks CGenFF topology, penalties and stereochemistry; `06B` prepares and validates the Solution Builder package. Both use the packaged example by default. |
 | GROMACS/OpenMM MD workflows | Working/in progress | Dry OpenMM and GROMACS preparation are working; solvated workflows and production-style routes are under active development by notebook. |
 | HPC workflow | Working | YAML/SLURM-oriented helpers and notebook guidance are present for staged runs. |
 | Polymer analysis | Working | Basic analysis notebook supports analysis from preprocessed trajectories. |
@@ -412,8 +412,13 @@ tests/       Automated tests for builders, export, MD workflow helpers,
 
 ## Notebook Workflow
 
+Read the execution cells before Run All: **05A currently enables GAFF2 parameterisation**,
+and **10 runs preparation/solvation/minimisation and can submit with `sbatch`**.
+06A, 06C and the quick dry check use default-off execution flags. 05B/06B
+run their packaged input checks by default.
+
 The notebooks are workflow modules, not a 01→12 sequence. Notebooks 01–04 build the PHA;
-then pick **one** workflow; 07 runs it on HPC; 08–12 analyse.
+then pick **one** workflow; 07 explains HPC execution; choose the relevant analysis or docking module.
 
 - PHA alone in water: 05A → 06A
 - Enzyme–PHA in water (the method used for the project's research simulations): 05B → 06B
@@ -427,8 +432,8 @@ Outside the main workflows:
 Both enzyme workflows need a docked enzyme–PHA complex PDB first; prepare the PHA input for
 docking with `11_enzyme_docking_setup.ipynb`. 06B reproduces the project's research
 simulations. 06C is a different force-field setup, so results are not directly comparable
-with 06B. See [notebooks/README.md](notebooks/README.md) for the details and a 06B/06C
-comparison table.
+with 06B. See [the full 06B–06C comparison](docs/workflows/optional_openmm.md)
+for matched conditions, inputs, output formats and restart requirements.
 
 | Notebook | Purpose | Main output |
 |---|---|---|
@@ -441,7 +446,7 @@ comparison table.
 | `05B_charmm_cgenff_parameters.ipynb` | Check the CHARMM-GUI CGenFF files for the PHA: all stereocentres R, parameter quality scores, CGenFF version; runs on the example dataset by default. | ✓/✗ checks of the `lig/` files used in 06B (`lig_g.rtf` or `lig.rtf`, and `lig.prm`). |
 | `06A_gaff2_gromacs_pha_in_water.ipynb` | Convert the 05A GAFF2 PHA to GROMACS (ParmEd) and add CHARMM-style TIP3P water with SOD/CLA: the polymer benchmark method. | `gromacs/dry_polymer/` and `gromacs/solvated_polymer/` with `step5_input.gro`, `topol.top`, mdp files and run scripts. |
 | `06B_cgenff_gromacs_pha_enzyme_in_water.ipynb` | Prepare and check a CHARMM-GUI Solution Builder GROMACS package of an enzyme + polymer complex in water; runs on the example dataset `examples/data/charmm_gui_ANC55_P3HB4/` by default. | A GROMACS run folder with `step6.x`/`step7` files and PASS/FAIL checks. |
-| `06C_optional_gaff2_openmm_pha_enzyme_in_water.ipynb` | Optional: build an enzyme + polymer complex (ff19SB + GAFF2, from the docked complex PDB) in OPC water and prepare staged OpenMM MD with 06B's stage lengths; a different force-field setup from 06B. | Posed polymer mol2, protein PDB, `system.prmtop`/`system.inpcrd` and the same run files. |
+| `06C_optional_gaff2_openmm_pha_enzyme_in_water.ipynb` | Optional: build an enzyme + polymer complex (ff19SB + GAFF2, from the docked complex PDB) in OPC water at 303.15 K, 0.05 M NaCl and rectangular 3.0 nm padding, with 06B's stage lengths; a different force-field setup from 06B. | Posed polymer mol2, protein PDB, `system.prmtop`/`system.inpcrd` and standalone OpenMM scripts, `protocol.json`, stage states and checkpoints. |
 | `07_hpc_execution.ipynb` | Prepare and document local/HPC staged execution. | SLURM scripts, restart guidance, and benchmark execution notes. |
 | `08_trajectory_preprocessing.ipynb` | Reconstruct, center, wrap, and optionally fit GROMACS trajectories. | `step7_centered.xtc`, optional `step7_fitted.xtc`, and representative frames. |
 | `09_solvated_polymer_analysis.ipynb` | Run basic polymer trajectory analysis. | Analysis tables and plots for metrics such as radius of gyration and SASA. |
@@ -509,6 +514,4 @@ development team and SATISPHACTION project funding (EIC Pathfinder) when using t
 Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union, European Innovation Council and SMEs Executive Agency (EISMEA). 
 Neither the European Union nor the granting authority can be held responsible for them
 
-<p align="center">
-  <img src="docs/EIC_EUfundedflag.jpg" alt="EIC_EUfundedflag" width="400"/>
-</p>
+![European Union funding acknowledgement](docs/EIC_EUfundedflag.jpg)

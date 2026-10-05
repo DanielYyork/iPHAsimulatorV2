@@ -101,3 +101,29 @@ def test_read_charmm_histidine_states(tmp_path):
                    "1 NH1 58 HSD N 1 -0.47 14.007\n2 NH1 78 HSE N 2 -0.47 14.007\n3 NH1 80 HSP N 3 -0.47 14.007\n4 NH1 81 LEU N 4 -0.47 14.007\n")
 
     assert read_charmm_histidine_states(itp) == {58: "HID", 78: "HIE", 80: "HIP"}
+
+
+def test_protein_preparation_preserves_named_histidines_and_chains(tmp_path):
+    ligand, _, _ = _template(tmp_path)
+    complex_pdb, _ = _complex_pdb(tmp_path, ligand)
+    text = complex_pdb.read_text().replace("HIS A   2", "HID B   2")
+    complex_pdb.write_text(text)
+    result = write_protein_pdb(complex_pdb, tmp_path / "protein.pdb")
+    assert result.histidines == {2: "HID"}
+    assert "TER\nATOM      4" in result.output_path.read_text()
+    with pytest.raises(ValueError, match="single protein chain"):
+        write_protein_pdb(complex_pdb, tmp_path / "ambiguous.pdb", histidine_states={2: "HIE"})
+
+
+def test_pose_preparation_rejects_mirrored_stereochemistry(tmp_path):
+    ligand, sdf, mol2 = _template(tmp_path)
+    complex_pdb, _ = _complex_pdb(tmp_path, ligand)
+    lines = []
+    for line in complex_pdb.read_text().splitlines():
+        if line.startswith("HETATM"):
+            line = f"{line[:30]}{-float(line[30:38]):8.3f}{line[38:]}"
+        lines.append(line)
+    complex_pdb.write_text("\n".join(lines) + "\n")
+    with pytest.raises(ValueError, match="R stereocentres"):
+        pose_polymer_mol2(mol2, sdf, complex_pdb, tmp_path / "mirrored.mol2")
+    assert not (tmp_path / "mirrored.mol2").exists()

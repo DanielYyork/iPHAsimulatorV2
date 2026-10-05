@@ -4,11 +4,7 @@
 planning and execution; it does not replace topology preparation or validate
 equilibration automatically.
 
-```{warning}
-The configured runner imports construction and MD modules with existing
-[syntax blockers](../capabilities.md#import-blockers). This also affects its
-`--dry-run` and `--write-slurm` entry points until those imports are repaired.
-```
+
 
 ## 1. Review the configuration
 
@@ -26,7 +22,7 @@ used relative to the process working directory. Launch it from the repository ro
 
 ## 2. Print a plan and generate a script
 
-After the import blockers are resolved:
+From the active installed environment:
 
 ```bash
 python examples/run_configured_workflow.py --config examples/hpc_validation_workflow.yaml --dry-run
@@ -56,3 +52,14 @@ single-system enzyme-contact analysis.
 
 API: {py:func}`iphasimulator.workflows.hpc.workflow_plan`,
 {py:func}`iphasimulator.workflows.hpc.render_slurm_script`.
+
+## Prepared 06A/06B/06C folders
+
+The configuration runner above is an additional interface, separate from
+07’s prepared-folder hand-off. 06A/06B need local `step6.0_minimization.gro`
+before their generated NVT/NPT/production script. 06C needs
+`step6.0_minimization.xml`, its original PRMTOP/INPCRD and `protocol.json`;
+its standalone runner resumes each MD stage from a compatible checkpoint
+and takes no additional steps in completed stages. Review output/checkpoint
+consistency after interruption and keep physical inputs unchanged. See
+[the 06C restart guide](optional_openmm.md#restart-and-analysis-formats).

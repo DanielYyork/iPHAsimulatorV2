@@ -9,6 +9,12 @@ iPHASimulator v2 serves two purposes:
 
 ## How to use these notebooks
 
+Review execution cells before Run All. The current 05A `RUN_GAFF2` is **True**.
+10 performs the selected system’s preparation, solvation and minimisation, and
+submits on a cluster if `sbatch` is available and no submission is recorded.
+06A/06C and the quick dry check default to disabled execution; 05B/06B run
+packaged input checks without launching MD.
+
 The notebooks are workflow modules, not a 01→12 sequence:
 
 1. **01–04** build the PHA (design, validate, export SDF/PDB).
@@ -16,8 +22,8 @@ The notebooks are workflow modules, not a 01→12 sequence:
    - PHA alone in water: 05A → 06A
    - Enzyme–PHA in water (the method used for the project's research simulations): 05B → 06B
    - Optional enzyme–PHA alternative with OpenMM: 05A → 06C
-3. **07** runs it on HPC.
-4. **08–12** analyse (10 runs the polymer-only benchmark in batch; 11 prepares docking inputs).
+3. **07** explains execution of prepared inputs on HPC.
+4. **08 → 09** preprocess and analyse polymer trajectories. **10** launches the polymer benchmark; **11** exports its polymer frame before manual enzyme docking; **12** analyses an existing GROMACS enzyme–PHA trajectory.
 
 **Both enzyme workflows need a docked enzyme–PHA complex PDB first.** Prepare the PHA input
 with `11_enzyme_docking_setup.ipynb`, dock it to the enzyme (manual HADDOCK), and use the
@@ -75,13 +81,14 @@ results are not directly comparable with 06B.
 | Protein | CHARMM36m | ff19SB |
 | PHA | CGenFF (05B) | GAFF2 (05A; ABCG2 charges by default) |
 | Water | CHARMM TIP3P | OPC |
-| Ions / salt | SOD/CLA (NaCl), 0.05 M, neutralised | Na⁺/Cl⁻, 0.15 M, neutralised |
-| Box | rectangular, 30 Å from the protein to the box edge (example: 11.4 nm cube) | cubic, 1.2 nm padding around the complex |
+| Ions / salt | SOD/CLA (NaCl), 0.05 M, neutralised | Na⁺/Cl⁻, 0.05 M, neutralised |
+| Box | rectangular, 30 Å from the protein to the box edge (example: 11.4 nm cube) | rectangular, 3.0 nm padding around the complete complex |
 | Engine | GROMACS | OpenMM |
 
 Both start from the same docked complex PDB. 06C follows 06B's stage names, lengths,
 temperature and restraint strengths, but its thermostat, barostat and non-bonded settings are
 OpenMM's and Amber's, so the MD protocol is similar, not identical.
+See [the full settings comparison and validation](../docs/workflows/optional_openmm.md).
 
 For 06B, the 05B files go into CHARMM-GUI Solution Builder. Upload `lig_g.rtf` as topology
 and `lig.prm` as parameters. If your download has no `lig_g.rtf`, use `lig.rtf`; the charges
@@ -134,3 +141,16 @@ They explain what each step means and keep editable input cells small.
 
 Reusable Python logic belongs in `src/iphasimulator`. Notebook cells should guide
 the workflow, not duplicate chemistry or simulation code.
+
+## Teaching and research analysis
+
+Notebooks 01–07 teach preparation and execution; 08–12 illustrate selected analysis,
+benchmark and docking tasks using existing GROMACS data. 08/09 and 12 contain
+machine-specific research paths that must be replaced. 10 is a benchmark launcher,
+and 11 precedes enzyme MD rather than following it: its default input comes from
+10’s polymer-only run. You can use a reviewed docked complex from another source.
+
+Research workflows under `src/md_simulation_scripts/` are separate: the reusable
+contact notebook and CLI require matching periodic topology/trajectory inputs and
+system-specific selections. 06C writes DCD/PDB/CSV, while 08/12 expect GROMACS
+XTC/TPR/EDR; their paths cannot simply be swapped to OpenMM outputs.

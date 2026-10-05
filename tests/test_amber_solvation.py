@@ -9,6 +9,7 @@ import json
 
 from iphasimulator.amber_solvation import (
     ENZYME_POLYMER_IN_WATER_PROTOCOL,
+    ENZYME_SOLVATION_SETTINGS,
     POLYMER_IN_WATER_PROTOCOL,
     AmberSolvationSettings,
     build_solvated_amber_system,
@@ -208,3 +209,59 @@ def test_write_openmm_run_files(tmp_path):
 def test_write_openmm_run_files_needs_system(tmp_path):
     with pytest.raises(FileNotFoundError, match="system.prmtop"):
         write_openmm_run_files(tmp_path, POLYMER_IN_WATER_PROTOCOL, job_name="x")
+
+
+def test_enzyme_intervals_agree_with_actual_06b_templates():
+    from pathlib import Path
+    runner = load_openmm_runner()
+    protocol = ENZYME_POLYMER_IN_WATER_PROTOCOL.__dict__
+    templates = Path(__file__).resolve().parents[1] / "src/iphasimulator/data/charmm_gromacs"
+    for stage in ("step6.1_nvt", "step6.2_npt", "step7_production"):
+        settings = {}
+        for line in (templates / f"{stage}.mdp").read_text().splitlines():
+            line = line.split(";", 1)[0]
+            if "=" in line:
+                key, value = line.split("=", 1)
+                settings[key.strip()] = value.strip()
+        dt = float(settings["dt"])
+        assert runner.stage_steps(protocol, stage) == int(settings["nsteps"])
+        assert runner.stage_intervals(protocol, stage) == (
+            int(settings["nstenergy"]) * dt, int(settings["nstxout-compressed"]) * dt)
+        assert float(settings["ref_t"].split()[0]) == protocol["temperature_kelvin"]
+
+
+def test_enzyme_solvation_and_restart_script(tmp_path):
+    text = write_tleap_input(tmp_path / "input.in", mol2_name="p.mol2", frcmod_name="p.frcmod",
+                             settings=ENZYME_SOLVATION_SETTINGS, protein_pdb_name="protein.pdb", salt_pairs=3)
+    assert "solvateBox SYS OPCBOX 30.0\n" in text
+    assert " iso" not in text and ENZYME_SOLVATION_SETTINGS.salt_molar == 0.05
+    assert salt_ion_pairs(3700, ENZYME_SOLVATION_SETTINGS.salt_molar) == 3
+
+
+def test_restart_fingerprint_detects_physical_input_changes(tmp_path):
+    runner = load_openmm_runner()
+    (tmp_path / "system.prmtop").write_text("original topology")
+    (tmp_path / "system.inpcrd").write_text("original coordinates")
+    protocol = ENZYME_POLYMER_IN_WATER_PROTOCOL.__dict__.copy()
+    original = runner.input_signature(tmp_path, protocol)
+    protocol["temperature_kelvin"] = 300
+    assert runner.input_signature(tmp_path, protocol) != original
+    protocol["temperature_kelvin"] = 303.15
+    (tmp_path / "system.inpcrd").write_text("changed coordinates")
+    assert runner.input_signature(tmp_path, protocol) != original
+
+
+def test_runner_rejects_unknown_stages():
+    with pytest.raises(ValueError, match="Unknown stage"):
+        load_openmm_runner().stage_steps(ENZYME_POLYMER_IN_WATER_PROTOCOL.__dict__, "typo")
+
+
+def test_short_test_cli_accepts_no_stage_names(monkeypatch):
+    runner = load_openmm_runner()
+    called = []
+    monkeypatch.setattr(runner, "run_short_test", lambda **kwargs: called.append(kwargs) or [])
+    runner.main(["--short-test", "--platform", "CPU"])
+    assert called == [{"platform_name": "CPU"}]
+    with pytest.raises(SystemExit) as error:
+        runner.main(["typo"])
+    assert error.value.code == 2

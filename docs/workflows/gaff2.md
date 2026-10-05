@@ -3,11 +3,7 @@
 **Input:** an exported SDF. **Outputs:** MOL2, FRCMOD, PRMTOP, INPCRD, PDB and
 command/timing logs. The existing helper runs AmberTools; it does not perform MD.
 
-```{warning}
-`parameterization_gaff2.py` currently has an [import-order blocker](../capabilities.md#import-blockers).
-Resolve that source issue before attempting the commands below. This documentation
-does not run AmberTools.
-```
+
 
 ## 1. Check prerequisites and choose paths
 
@@ -50,9 +46,8 @@ successful file creation alone does not validate a force field for every PHA.
 Continue with [engine preparation](simulation.md) using the matching topology
 and coordinates.
 
-The [05A notebook](../notebooks.md#parameterisation-and-simulation) has a disabled
-execution switch and explains the branch into OpenMM and GROMACS. The 05B
-CHARMM/CGenFF notebook is an **incomplete manual handoff**, not an automated
-replacement for this route.
+The [05A notebook](../notebooks.md#parameterisation-and-simulation) currently has `RUN_GAFF2 = True` in its
+execution cell and explains the branch into OpenMM and GROMACS. The 05B CHARMM/CGenFF notebook checks the separate manual CHARMM-GUI route;
+its default example runs without a website upload. It supplies CGenFF inputs to 06B.
 
 API: {py:func}`iphasimulator.parameterization_gaff2.parameterize_gaff2`.

@@ -1,56 +1,44 @@
 # Current capabilities and limitations
 
-This page is based on the code and notebook sources in this checkout. **Implemented**
-means a concrete helper exists; it is not a claim that a production MD protocol
-has been validated. Historical notebook outputs may predate current source errors.
+The teaching notebooks are complete workflow guides. Their reusable helpers import
+in the installed `ipha_clean` environment; the old import-order blocker list no
+longer describes this checkout. Completion of a tutorial does not validate a
+force field, a production trajectory or a binding prediction.
 
-| Area | Current implementation | Limitations |
+| Area | Current implementation | Prerequisites / limits |
 | --- | --- | --- |
-| Naming | Canonical monomer, polymer, oligomer and multi-chain names | A naming helper does not build a mixed polymer |
-| RDKit construction / export | Curated monomers, alkyl side-chain length, custom R 3-hydroxy acid; PDB/SDF export | Currently blocked by import-order errors |
-| Database construction | `PHAPolymerBuilder`, residue/path managers; trimer parameterisation, manual prepgen definitions, tleap assembly; patterned/random copolymers from existing prepins | Requires Open Babel and AmberTools; uses repository-root `src.iphasimulator` imports; separate from the RDKit notebooks |
-| GAFF2 parameterisation | SDF → MOL2/FRCMOD/PRMTOP/INPCRD, charge handling and logs | Import blocker; external AmberTools required; default charge method is currently `abcg2` |
-| OpenMM AMBER runner | Minimisation, NVT, NPT when periodic, production and logs | Import blocker; requires valid input parameters and OpenMM |
-| GROMACS preparation | ParmEd conversion; dry/solvated input folders, MDP/scripts and validation helpers | Import blockers; production settings and prepared systems still need validation |
-| HPC | YAML planning, SLURM generation, execution and restart guidance | Workflow imports depend on blocked modules; cluster settings must be edited |
-| Trajectories | GROMACS merge/check, centering, wrapping, optional fitting, representative frames | Requires GROMACS and matching simulation inputs |
-| Enzyme–PHA contacts | Reusable minimum-image distances, both heavy-atom modes, occupancies, plots and provenance | Proximity only; no affinity/catalysis/convergence inference |
-| Basic polymer analysis | Notebook Rg, end-to-end distance and SASA using MDTraj | Notebook-level workflow; requires meaningful selections and preprocessed coordinates |
-| Enzyme stability | Notebook energy and RMSD diagnostics | System-specific paths/selections; manual interpretation |
-| Docking preparation | Notebook 11: polymer-only GRO-to-PDB export (after a whole-molecule check) and manual job records | No HADDOCK submission or validated complex builder; inspect the exported PDB |
-| CHARMM/CGenFF with GROMACS | 05B documents the CHARMM-GUI route with penalty and stereocentre checks; 06B prepares and checks GROMACS folders from CHARMM-GUI downloads (example dataset: `examples/data/charmm_gui_ANC55_P3HB4/`) | CGenFF and CHARMM-GUI steps are manual; minimisation runs only on request |
-| Solvated OpenMM (Amber force fields) | Notebook 06C (optional): tleap GAFF2 + OPC (optional ff19SB protein), short OpenMM test, production script; a different force-field setup from 06B | tleap/OpenMM are mocked in tests; GAFF2 + OPC is not validated for PHA |
-| Packing / script builders | Additional single-chain, melt and OpenMM script classes | Advanced, separate interfaces; not a fully unified end-to-end tutorial |
-| APO comparisons, catalytic geometry, repeat-unit contacts, ML/DFT | Not part of the reusable contact workflow | Planned or outside the documented v2 scope |
+| Construction and export | 01–04: curated monomers, side-chain/custom design, R checks, SDF/PDB export | RDKit and the installed package; inspect geometry before parameterisation |
+| GAFF2 | 05A: MOL2/FRCMOD/PRMTOP/INPCRD and command/timing logs | AmberTools; default ABCG2 requires version ≥23; benchmark used AM1-BCC |
+| Quick dry test | 05A_quick_check_openmm: load, minimise and short dynamics | 05A files + OpenMM; no solution-physics interpretation |
+| Polymer in water | 06A: ParmEd conversion to GROMACS, CHARMM-style TIP3P/SOD/CLA | 05A inputs, ParmEd, GROMACS; explicit run/write flags |
+| Enzyme–PHA reference | 05B → 06B: CGenFF checks and CHARMM-GUI Solution Builder preparation | Website steps manual; packaged ANC55/P3HB4 inputs run by default; reviewed docking and protonation for new systems |
+| Optional enzyme–PHA | 05A → 06C: ff19SB/GAFF2/OPC, tleap + staged OpenMM | Docked complex and same-oligomer 05A files; [matched conditions and differences](workflows/optional_openmm.md); GAFF2/OPC is not validated for PHA |
+| HPC | 07: reviewed SLURM execution, restart and benchmarking; YAML helper interface | Prepared run folder; cluster environment/directives must be edited |
+| Polymer benchmark | 10: six-system GAFF2/GROMACS batch workflow | External engines and storage; its execution cell runs preparation and may submit with sbatch; separate from a single enzyme simulation |
+| Docking inputs | 11: whole-polymer GRO-to-PDB export and manual HADDOCK records | Benchmark frame/topology or other reviewed docking source; no automated submission |
+| Teaching analysis | 08/09: GROMACS preprocessing and Rg/end-to-end/SASA; 12: enzyme stability | Existing matching trajectories/topologies; machine-specific paths and selections must be replaced |
+| Research contacts | Separate contact notebook/CLI under `src/md_simulation_scripts/enzyme_contacts/` | Matching periodic trajectory/topology; sampled proximity does not establish affinity or catalysis |
+| Database construction | `PHAPolymerBuilder` and prepin/trimer route | Open Babel/AmberTools and manually supplied head/main/tail definitions; distinct from RDKit tutorials |
+| Packing, GUI, script builders | Additional advanced interfaces | Not a unified validated production pipeline |
 
-## Import blockers
+## Validation and remaining limits
 
-The following files have an additional standalone comment string before
-`from __future__ import annotations`, which Python rejects at import time:
+The maintained `tests/` suite is the test entry point. Bare repository-wide pytest
+also discovers a legacy `src/dan_example_scripts/test_openmm_script_builder.py`
+whose constructor call uses an obsolete `root_dir` argument; it is outside these
+teaching routes. Research datasets are not distributed as tutorial trajectories.
+A notebook's saved outputs do not validate new inputs.
 
-- `build.py`, `monomers.py`, `stereochemistry.py`, `export.py`
-- `parameterization_gaff2.py`
-- `conversion_amber_to_gromacs.py`, `simulation_gromacs_runner.py`
-- `simulation_openmm_amber_runner.py`, `system_builder_packmol.py`
+Schema/syntax checks and short execution can establish runnable preparation and
+restart behaviour. They do not establish full equilibration, convergence or
+PHA-specific accuracy. [06C](workflows/optional_openmm.md) retains deliberate
+force-field and engine differences from 06B. GROMACS and OpenMM output formats
+also differ; GROMACS analysis cells cannot consume DCD/CSV by changing filenames.
 
-Other modules may be affected transitively, including `iphasimulator.workflows`
-and the configured execution runner. Even a runner's `--dry-run` needs its imports
-to succeed. These source files are intentionally unchanged by the documentation
-implementation. The [API reference](api/index.md) uses static parsing and can
-still show their signatures and docstrings.
+## Teaching and research material
 
-## Choosing a construction route
-
-The [P3HB_4 tutorial](quickstart.md) follows notebooks 01–04 and the existing
-RDKit helper interface. `build_pha.PHAPolymerBuilder` is an additional AmberTools
-database route; it requires prepared trimer data and manually supplied head,
-mainchain and tail definitions. Do not treat the two routes' parameters or files
-as interchangeable. See [polymer design](workflows/design.md).
-
-## Reading older material
-
-The [repository README](project_readme.md), [developer guide](developer_guide.md)
-and [contact validation record](enzyme_contacts.md) are preserved. Their historical
-status statements should be read alongside this page. The documentation does not
-promote notebook claims about enzyme binding or catalytic residues into verified
-package capabilities.
+Use the [notebook catalogue](notebooks.md) for names, prerequisites and run order.
+The [contact validation record](enzyme_contacts.md) records a particular research
+preview and its historical environment; it is separate from the current teaching
+validation. Notebook docking tables and catalytic-residue notes are project
+context, not validated package predictions.
