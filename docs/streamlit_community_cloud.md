@@ -1,5 +1,9 @@
 # Deploy the existing GUI to Streamlit Community Cloud
 
+Use **`cloud/streamlit_cloud.py`** as the Cloud main file. The root launcher
+still exists, but deploying it directly uses the broad development environment
+that stalled during the reported Cloud builds.
+
 This deployment retains the existing GUI, including polymer construction,
 system building, viewing, script generation, local simulation execution and
 analysis. The **Submit to Slurm** button remains present, but cannot submit
@@ -18,10 +22,19 @@ jobs without a configured Slurm installation. No Sunbird connection is used.
 - `streamlit_cloud.py`: a Cloud launcher that sets `IPHASIMULATOR_PYTHON` to
   the running interpreter, then runs the existing `pha_gui.py` unchanged.
 
-Cloud recognizes `environment.yml`; it does not automatically select the
-separately named `environment-gui.yml`. In the repository root,
-`environment.yml` takes precedence over `requirements.txt` and
-`pyproject.toml`. A second requirements file is unnecessary for this route.
+The `cloud/streamlit_cloud.py` entry point selects the adjacent
+`cloud/environment.yml` before any root dependency file. This Linux-only
+snapshot pins all 374 Conda packages resolved for Python 3.12 and Streamlit
+1.58.0, keeping every application/scientific dependency and omitting only
+pytest and JupyterLab. Its pip requirements are retained from the original
+environment and are not a complete pip lockfile. The original unpinned solve
+also selected Streamlit 1.9.0, so an explicit modern Streamlit version is
+important.
+
+Cloud does not automatically select `environment-gui.yml`. Do not add a
+competing requirements file. The root environment remains for local/Sunbird
+use. This snapshot reduces Conda version choices; it does not bypass solving
+or guarantee installation into Cloud’s existing base environment.
 See [Streamlit dependency selection](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies).
 
 ## 1. Put the required files on GitHub
@@ -33,7 +46,7 @@ computer. Review your changes before committing. This checkout uses branch
 From the project directory, add the new deployment files:
 
 ```bash
-git add streamlit_cloud.py docs/streamlit_community_cloud.md
+git add cloud streamlit_cloud.py docs/streamlit_community_cloud.md
 git diff --cached --stat
 git commit -m "Add Streamlit Community Cloud launcher and guide"
 git push origin dan
@@ -66,14 +79,19 @@ Do not upload the complete trajectory collection just to start the GUI.
    | --- | --- |
    | Repository | `MMLabCodes/iPHAsimulatorV2` |
    | Branch | `dan`, or the branch containing your deployment changes |
-   | Main file path | `streamlit_cloud.py` |
+   | Main file path | `cloud/streamlit_cloud.py` |
    | App URL | An available workshop subdomain of your choice |
 
 5. Open **Advanced settings**, select **Python 3.12** to match
-   `environment.yml`, and save.
+   `cloud/environment.yml`, and save.
 6. No secrets or Sunbird credentials are required for this setup. In
    particular, do not set `IPHASIMULATOR_PYTHON` to a Mac or `/scratch/` path.
 7. Click **Deploy** and watch the build logs.
+
+You can create a new app with this entry point and keep the failed app until
+the replacement works. In the build log, confirm the selected dependency file
+is `/mount/src/iphasimulatorv2/cloud/environment.yml`. If the root
+`environment.yml` is selected, the entry point is still incorrect.
 
 The full scientific environment has substantial dependencies; allow time for
 installation. Successful local startup does not establish that the Linux
@@ -109,9 +127,9 @@ a working scheduler or a Sunbird connection.
 
 | Symptom | What to check |
 | --- | --- |
-| Conda solve or installation failure | The first failing package in the build log; use the root `environment.yml`, not the GUI-only environment. |
+| Conda solve or installation failure | The first failing package in the build log; check that the log names `cloud/environment.yml`, not the root development environment. |
 | Missing `iphasimulator` module | The `-e .` installation in `environment.yml` completed, and `src/` plus `pyproject.toml` are in the deployed branch. |
-| Missing scientific Python executable | Main file is `streamlit_cloud.py`; remove any obsolete `IPHASIMULATOR_PYTHON` override from Cloud secrets. |
+| Missing scientific Python executable | Main file is `cloud/streamlit_cloud.py`; remove any obsolete `IPHASIMULATOR_PYTHON` override from Cloud secrets. |
 | No existing systems or polymers | Generated directories are excluded from Git; build examples in the app or supply selected example files. |
 | Missing monomer parameters | The selected monomer has complete parameter files in the deployed `PHA_types/` tree. A monomer appearing in the CSV alone is insufficient. |
 | Missing `tleap` or `acpype` | Full environment installation succeeded, and the Cloud interpreter is selected. |
@@ -151,4 +169,7 @@ warnings about incomplete monomer parameters were still shown.
 
 These checks used the installed GUI environment on macOS. They do not verify
 the Linux Conda build, scientific execution or rendering in a real Cloud
-browser. No Community Cloud deployment, Git commit or push has been performed.
+browser. The Conda portion of the Cloud snapshot was separately resolved for Linux-64
+with a glibc 2.31 compatibility constraint. This is a dry-run, not a Linux
+package installation. Pip installation and execution on Cloud remain to be
+verified. No Community Cloud deployment, Git commit or push has been performed.

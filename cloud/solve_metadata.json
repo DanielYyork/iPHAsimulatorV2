@@ -1,0 +1,23 @@
+{
+  "platform": "linux-64",
+  "glibc": "2.31",
+  "solver": "libmamba",
+  "conda_version": "25.11.1",
+  "conda_packages": 374,
+  "streamlit": "1.58.0",
+  "source_sha256": "875d596951f31b437d0731bd2af6b17240b689e460ee7456aaef34d837878050",
+  "verification": "Linux dependency-resolution dry-run only; no Linux installation or Cloud execution verified.",
+  "excluded_development_tools": [
+    "pytest",
+    "jupyterlab"
+  ],
+  "pip_requirements": [
+    "pysmiles==2.1.0",
+    "cgsmiles==1.0.2",
+    "polyply==1.8.0",
+    "py3Dmol",
+    "stmol",
+    "kneed",
+    "-e ."
+  ]
+}
