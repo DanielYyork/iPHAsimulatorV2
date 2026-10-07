@@ -1,0 +1,12 @@
+streamlit
+rdkit
+numpy
+pandas
+matplotlib
+Pillow
+scipy
+scikit-learn
+kneed
+MDAnalysis
+openmm
+parmed
