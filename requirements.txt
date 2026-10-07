@@ -9,4 +9,4 @@ scikit-learn
 kneed
 MDAnalysis
 openmm
-parmed
+parmEd
