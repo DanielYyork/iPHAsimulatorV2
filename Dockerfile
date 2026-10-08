@@ -23,8 +23,9 @@ ENV PYTHONUNBUFFERED=1 \
     NUMBA_CACHE_DIR=/tmp/ipha-numba
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER deploy/pip-requirements.txt deploy/pip-constraints.txt /tmp/
+COPY --chown=$MAMBA_USER:$MAMBA_USER deploy/check_dependencies.py /tmp/check_dependencies.py
 RUN python -m pip install --no-cache-dir -c /tmp/pip-constraints.txt -r /tmp/pip-requirements.txt && \
-    python -m pip check
+    python /tmp/check_dependencies.py
 
 USER root
 RUN mkdir -p /app /opt/ipha-seed && \
@@ -42,7 +43,7 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER deploy/ ./deploy/
 COPY --chown=$MAMBA_USER:$MAMBA_USER structure_database/residue_codes.csv /opt/ipha-seed/residue_codes.csv
 COPY --chown=$MAMBA_USER:$MAMBA_USER structure_database/PHA_types/ /opt/ipha-seed/PHA_types/
 RUN python -m pip install --no-cache-dir --no-deps --no-build-isolation . && \
-    python -m pip check && \
+    python deploy/check_dependencies.py && \
     python deploy/start.py --prepare-only && \
     python cloud/verify.py --output /tmp/ipha-build-check && \
     cp /tmp/ipha-build-check/report.json /app/deploy/build-report.json

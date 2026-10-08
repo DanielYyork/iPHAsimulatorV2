@@ -30,13 +30,24 @@ conflict that Conda's package metadata alone did not identify. The original
 Community Cloud environment file is unchanged; the override is recorded in
 `deploy/environment-provenance.json`.
 
+Biopython is also pinned to 1.85 to meet the requirements of AmberTools 26's
+bundled `proprep`. PDB2PQR 3.7.1 is included for `proprep` and `packmol-memgen`.
+
 `deploy/pip-requirements.txt` installs the remaining Python packages. Its
 scientific-package constraints prevent pip from silently replacing the main
 Conda scientific stack. Direct pip requirements are pinned; the entire pip
 dependency tree and base container digest are not fully locked. This is not
 a claim of a byte-for-byte reproducible image.
 
-The Docker build stops on any failed installation, `pip check`, or functional
+`deploy/check_dependencies.py` runs `pip check` and handles one known packaging
+mismatch: ACPYPE 2026.9.4's Python metadata requests `openbabel-wheel`, while
+its [Conda recipe](https://github.com/conda-forge/acpype-feedstock/blob/main/recipe/meta.yaml)
+uses `openbabel`. The check accepts only that exact message, and only after
+checking Conda package records and performing SMILES conversions through both
+the Python bindings and executable. Missing PDB2PQR, incompatible Biopython,
+other dependency failures and a broken Open Babel installation still fail.
+
+The Docker build stops on any failed installation, dependency check, or functional
 smoke check. It exercises PREPIN generation, construction of P3HB with four
 units, 20 OpenMM CPU steps, MDAnalysis trajectory loading, synthetic PCA/Tg
 analysis, workflow-script generation/compilation and all seven GUI tabs.
@@ -48,7 +59,7 @@ workflow, browser interaction or workshop capacity.
 Commit these exact additions on the branch you want to deploy (currently `dan`):
 
 ```bash
-git add Dockerfile .dockerignore render.yaml deploy cloud/verify.py docs/docker_render_deployment.md
+git add Dockerfile .dockerignore render.yaml deploy cloud/verify.py tests/test_deployment_dependencies.py docs/docker_render_deployment.md
 git diff --cached --stat
 git commit -m "Add Docker workshop deployment with explicit scientific environment"
 git push origin dan
@@ -143,7 +154,7 @@ Use Render's build/deploy logs. Copy the **first failed command and its error**:
   deploy the updated Dockerfile, which omits `micromamba clean --all`. Push it
   to `dan`, then choose **Manual Deploy → Deploy latest commit** on Render.
 - Archive download/checksum failure: the log identifies the exact package URL.
-- Pip conflict: the resolver or `pip check` names the conflicting dependencies.
+- Pip conflict: the resolver or dependency-check script names the conflicting dependencies.
 - `CHECK ...` failure: the traceback names the failing scientific or GUI step.
 - Disk error: confirm the mount is `/app/structure_database` and inspect existing
   contents. Do not delete a populated disk just to restart.
@@ -181,6 +192,15 @@ not installed on this Mac, so **the complete Docker build and Render deployment
 have not yet been executed here**.
 The build includes blocking checks so a failed scientific installation cannot
 quietly advance to deployment as a working app.
+
+After the next Render build reported missing PDB2PQR and incompatible Biopython,
+the affected dependencies were resolved/downloaded for Linux Python 3.12 using
+the deployment constraints. All 374 locked Conda packages still satisfy their
+declared Conda dependencies. Seven regression tests passed for the dependency
+checker, including rejection of the original four-error log and broken-provider
+failures. Open Babel Python/executable conversions were also exercised using the
+existing Mac installation, with only its older ACPYPE version guard substituted.
+The revised complete container still requires a Render build.
 
 References:
 

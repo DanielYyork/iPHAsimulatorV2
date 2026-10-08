@@ -26,7 +26,7 @@ os.environ["PATH"] = str(Path(sys.executable).parent) + os.pathsep + os.environ[
 def imports():
     modules = ("parmed", "rdkit", "openmm", "MDAnalysis", "mdtraj", "py3Dmol",
                "stmol", "openbabel.openbabel", "acpype", "pysmiles", "cgsmiles",
-               "polyply", "kneed", "streamlit")
+               "polyply", "kneed", "streamlit", "pdb2pqr", "Bio")
     result = {}
     for name in modules:
         try:
