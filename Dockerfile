@@ -4,8 +4,10 @@ FROM mambaorg/micromamba:2.9.0
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER deploy/conda-linux-64.lock /tmp/conda-linux-64.lock
 # @EXPLICIT installs exact archives with checksums: no dependency solve here.
-RUN micromamba install --yes --name base --file /tmp/conda-linux-64.lock && \
-    micromamba clean --all --yes
+# Keep the package cache: micromamba clean --all fails on AmberTools 26's
+# cached bin/amber.conda entry after installation has already completed.
+# Upstream: https://github.com/conda-forge/ambertools-feedstock/issues/193
+RUN micromamba install --yes --name base --file /tmp/conda-linux-64.lock
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 ENV PYTHONUNBUFFERED=1 \

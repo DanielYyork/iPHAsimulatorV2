@@ -17,6 +17,13 @@ installs those archives **without a dependency solve**. The Conda packages
 alone total approximately 1.03 GB of compressed downloads; the first build
 will still take time to download and extract them.
 
+The image currently retains the Conda package cache. The first Render build
+completed the Conda transaction, then failed in `micromamba clean --all` on
+AmberTools 26's cached `bin/amber.conda` entry. This matches an
+[upstream cleanup issue](https://github.com/conda-forge/ambertools-feedstock/issues/193).
+The optional cleanup command has been removed; this increases image size but
+keeps installation failures and the application checks fatal to the build.
+
 The Docker lock uses MDTraj 1.10.3 because 1.11.1's Python metadata requires
 NumPy 2, while this environment's PyDeck requires NumPy below 2. This avoids a
 conflict that Conda's package metadata alone did not identify. The original
@@ -132,6 +139,9 @@ name. Docker preserves software functionality, not unlimited compute capacity.
 
 Use Render's build/deploy logs. Copy the **first failed command and its error**:
 
+- `Transaction finished` followed by a cleanup error mentioning `amber.conda`:
+  deploy the updated Dockerfile, which omits `micromamba clean --all`. Push it
+  to `dan`, then choose **Manual Deploy → Deploy latest commit** on Render.
 - Archive download/checksum failure: the log identifies the exact package URL.
 - Pip conflict: the resolver or `pip check` names the conflicting dependencies.
 - `CHECK ...` failure: the traceback names the failing scientific or GUI step.
