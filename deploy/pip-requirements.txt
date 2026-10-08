@@ -6,3 +6,5 @@ polyply==1.8.0
 py3Dmol==2.5.5
 stmol==0.0.9
 kneed==0.8.6
+# Required by AmberTools' bundled packmol-memgen and proprep packages.
+pdb2pqr==3.7.1

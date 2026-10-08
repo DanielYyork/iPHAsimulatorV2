@@ -2,9 +2,9 @@
   "platform": "linux-64",
   "source": "cloud/environment.yml",
   "source_sha256": "fcd5106d422ba5fc5b2e2b1f73f36c92dbe2972c50005aac0a9699450b3dccb7",
-  "explicit_lock_sha256": "116fb630ae11cc4bd57ff494a1c0514bfa686d01200144db15482bdd11aa74b9",
+  "explicit_lock_sha256": "a4e0078bd643bf97f432fe440c47fcff797fc8e49fc9cdf56972ff51140b8ef6",
   "conda_packages": 374,
-  "download_bytes": 1029413703,
+  "download_bytes": 1029613021,
   "archive_checksums": "MD5 from conda-forge repodata",
   "conda_installation": "Explicit package URLs bypass the solver.",
   "verification": "Archive identities matched cached conda-forge repodata; Docker build and Linux execution not yet verified.",
@@ -14,6 +14,12 @@
       "source_version": "1.11.1",
       "locked_version": "1.10.3",
       "reason": "MDTraj 1.11.1 Python metadata requires NumPy 2; the resolved pydeck requires NumPy <2. MDTraj 1.10.3 supports NumPy >=1.25,<3."
+    },
+    {
+      "package": "biopython",
+      "source_version": "1.88",
+      "locked_version": "1.85",
+      "reason": "AmberTools 26 bundles proprep 1.0.0, whose Python metadata requires Biopython >=1.83,<1.86."
     }
   ]
 }
