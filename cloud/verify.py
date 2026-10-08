@@ -127,7 +127,7 @@ def gui():
 
     app = AppTest.from_file(str(ROOT / "pha_gui.py"), default_timeout=90).run()
     assert not app.exception, [item.message for item in app.exception]
-    assert len(app.tabs) == 7, [item.value for item in app.error]
+    assert len(app.tabs) == 8, [item.value for item in app.error]
     return {"tabs": [item.label for item in app.tabs], "displayed_errors": [item.value for item in app.error]}
 
 
