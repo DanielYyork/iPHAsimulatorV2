@@ -1,6 +1,7 @@
 """Browse and download files from the structure database."""
 
 import mimetypes
+from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
@@ -9,7 +10,9 @@ from gui.config import STRUCTURE_DATABASE
 
 
 PREVIEW_BYTES = 64 * 1024
+IMAGE_PREVIEW_BYTES = 10 * 1024 * 1024
 LARGE_DOWNLOAD_BYTES = 200 * 1024 * 1024
+PAGE_SIZE = 40
 
 
 def database_path(root: Path, relative: str | Path) -> Path:
@@ -58,10 +61,230 @@ def _size_label(size: int) -> str:
     raise AssertionError("Unreachable")
 
 
+def _open_folder(relative: Path) -> None:
+    st.session_state.structure_database_browser_folder = str(relative)
+    st.session_state.structure_database_browser_selected = None
+    st.rerun()
+
+
+def _render_folder_tree(root: Path, relative: Path, entries: list[Path]) -> None:
+    """Show root shortcuts, the current path, and nearby folders."""
+    st.markdown("#### Folders")
+    if st.button("📁 Structure Database", key="database_tree_root", width="stretch"):
+        _open_folder(Path("."))
+
+    ancestors = list(reversed(relative.parents)) + [relative]
+    for index, ancestor in enumerate(ancestors):
+        if ancestor == Path("."):
+            continue
+        if st.button(
+            f"↳ {ancestor.name}",
+            key=f"database_tree_ancestor_{index}",
+            width="stretch",
+            type="primary" if ancestor == relative else "secondary",
+        ):
+            _open_folder(ancestor)
+
+    st.divider()
+    if relative != Path(".") and st.button(
+        "⬆️ Parent folder", key="database_up", width="stretch"
+    ):
+        _open_folder(relative.parent)
+
+    root_folders = [
+        path for path in database_entries(root, ".")
+        if path.is_dir() and not path.is_symlink()
+    ]
+    with st.container(height=450):
+        st.caption("Top-level folders")
+        for path in root_folders:
+            if st.button(
+                f"📁 {path.name}", key=f"database_root_{path.name}", width="stretch"
+            ):
+                _open_folder(Path(path.name))
+
+        if relative != Path("."):
+            child_folders = [
+                path for path in entries if path.is_dir() and not path.is_symlink()
+            ]
+            if child_folders:
+                st.caption("Folders here")
+            for path in child_folders[:20]:
+                if st.button(
+                    f"📁 {path.name}",
+                    key=f"database_child_{relative / path.name}",
+                    width="stretch",
+                ):
+                    _open_folder(relative / path.name)
+            if len(child_folders) > 20:
+                st.caption("More folders are in the file list →")
+
+
+def _sorted_entries(entries: list[Path], sort_by: str, descending: bool) -> list[Path]:
+    """Put directories first, then sort each group by the selected column."""
+    def value(path: Path):
+        if sort_by == "Size":
+            return path.lstat().st_size if path.is_file() or path.is_symlink() else 0
+        if sort_by == "Modified":
+            return path.lstat().st_mtime
+        if sort_by == "Type":
+            return path.suffix.casefold(), path.name.casefold()
+        return path.name.casefold()
+
+    folders = [path for path in entries if path.is_dir() and not path.is_symlink()]
+    folder_set = set(folders)
+    files = [path for path in entries if path not in folder_set]
+    return sorted(folders, key=value, reverse=descending) + sorted(
+        files, key=value, reverse=descending
+    )
+
+
+def _render_file_list(root: Path, relative: Path, entries: list[Path]) -> None:
+    st.markdown("#### Files and folders")
+    parts = ["structure_database", *relative.parts] if relative != Path(".") else ["structure_database"]
+    with st.container(horizontal=True):
+        for index, name in enumerate(parts):
+            destination = Path(*parts[1:index + 1]) if index else Path(".")
+            if st.button(
+                name, key=f"database_crumb_{relative}_{index}"
+            ):
+                _open_folder(destination)
+
+    filter_column, sort_column, order_column = st.columns([3, 1.3, 1.2])
+    with filter_column:
+        query = st.text_input(
+            "Search this folder", key=f"database_filter_{relative}"
+        ).casefold()
+    with sort_column:
+        sort_by = st.selectbox(
+            "Sort by", ["Name", "Type", "Size", "Modified"],
+            key=f"database_sort_{relative}",
+        )
+    with order_column:
+        descending = st.toggle("Descending", key=f"database_reverse_{relative}")
+
+    visible = _sorted_entries(
+        [entry for entry in entries if query in entry.name.casefold()],
+        sort_by,
+        descending,
+    )
+    st.caption(f"{len(visible)} of {len(entries)} items")
+    if not visible:
+        st.info("No files or folders match this search." if entries else "This folder is empty.")
+        return
+
+    total_pages = (len(visible) + PAGE_SIZE - 1) // PAGE_SIZE
+    page_key = f"database_page_{relative}"
+    page = min(st.session_state.get(page_key, 0), total_pages - 1)
+    st.session_state[page_key] = page
+    if total_pages > 1:
+        previous, page_label, next_page = st.columns([1, 2, 1])
+        with previous:
+            if st.button("← Previous", disabled=page == 0, key=f"database_previous_{relative}"):
+                st.session_state[page_key] = page - 1
+                st.rerun()
+        with page_label:
+            st.caption(f"Page {page + 1} of {total_pages}")
+        with next_page:
+            if st.button("Next →", disabled=page == total_pages - 1, key=f"database_next_{relative}"):
+                st.session_state[page_key] = page + 1
+                st.rerun()
+
+    header = st.columns([5, 1.4, 1.2, 1.8])
+    for column, label in zip(header, ("Name", "Type", "Size", "Modified")):
+        column.markdown(f"**{label}**")
+    st.divider()
+
+    selected_name = st.session_state.get("structure_database_browser_selected")
+    with st.container(height=450):
+        for path in visible[page * PAGE_SIZE:(page + 1) * PAGE_SIZE]:
+            is_link = path.is_symlink()
+            is_folder = path.is_dir() and not is_link
+            row = st.columns([5, 1.4, 1.2, 1.8], vertical_alignment="center")
+            relative_path = relative / path.name
+            with row[0]:
+                if st.button(
+                    f"{'📁' if is_folder else '🔗' if is_link else '📄'} {path.name}",
+                    key=f"database_row_{relative_path}",
+                    width="stretch",
+                    type="primary" if str(relative_path) == selected_name else "secondary",
+                    disabled=is_link,
+                    help="Open folder" if is_folder else "Select file to preview and download",
+                ):
+                    if is_folder:
+                        _open_folder(relative_path)
+                    st.session_state.structure_database_browser_selected = str(relative_path)
+                    st.rerun()
+            row[1].write("Folder" if is_folder else "Link" if is_link else (path.suffix or "File"))
+            try:
+                details = path.stat() if not is_link else path.lstat()
+            except OSError:
+                row[2].write("—")
+                row[3].write("—")
+            else:
+                row[2].write("—" if is_folder else _size_label(details.st_size))
+                row[3].write(datetime.fromtimestamp(details.st_mtime).strftime("%Y-%m-%d"))
+
+
+def _render_selection(root: Path, relative: Path) -> None:
+    selected_name = st.session_state.get("structure_database_browser_selected")
+    if not selected_name:
+        st.info("Select a file to preview it and download a copy.")
+        return
+
+    selected_relative = Path(selected_name)
+    if selected_relative.parent != relative:
+        st.session_state.structure_database_browser_selected = None
+        return
+    try:
+        selected = database_path(root, selected_relative)
+        if not selected.is_file():
+            raise ValueError("The selected item is not a file.")
+        size = selected.stat().st_size
+    except (OSError, ValueError) as error:
+        st.warning(f"The selected file is unavailable: {error}")
+        return
+
+    st.markdown(f"#### 📄 {selected.name}")
+    st.caption(f"{selected_relative} · {_size_label(size)}")
+    if size > LARGE_DOWNLOAD_BYTES:
+        st.warning(
+            "This is a large file. Downloading it through Streamlit may use "
+            "substantial server memory."
+        )
+
+    mime = mimetypes.guess_type(selected.name)[0] or "application/octet-stream"
+    st.download_button(
+        "⬇️ Download file",
+        data=lambda: download_file(root, selected_relative),
+        file_name=selected.name,
+        mime=mime,
+        key=f"database_download_{selected_relative}",
+        type="primary",
+    )
+
+    if selected.suffix.casefold() in {".png", ".jpg", ".jpeg", ".webp"} and size <= IMAGE_PREVIEW_BYTES:
+        with st.expander("Preview image", expanded=True):
+            st.image(selected.read_bytes(), width="stretch")
+        return
+
+    if size <= PREVIEW_BYTES:
+        with selected.open("rb") as file:
+            sample = file.read(PREVIEW_BYTES)
+        if b"\0" not in sample:
+            try:
+                preview = sample.decode("utf-8")
+            except UnicodeDecodeError:
+                pass
+            else:
+                with st.expander("Preview file", expanded=True):
+                    st.code(preview)
+
+
 def render_database_browser_tab(root: Path = STRUCTURE_DATABASE) -> None:
-    """Render a folder browser with one-file-at-a-time downloads."""
+    """Render a two-pane browser with one-file-at-a-time downloads."""
     st.markdown("## 📁 Structure Database")
-    st.write("Browse generated files and download a selected file to your computer.")
+    st.write("Browse folders, inspect files, and download a copy to your computer.")
 
     root = Path(root)
     if not root.is_dir():
@@ -77,75 +300,10 @@ def render_database_browser_tab(root: Path = STRUCTURE_DATABASE) -> None:
         st.session_state[state_key] = "."
         entries = database_entries(root, relative)
 
-    shown_folder = Path("structure_database") / relative
-    st.code(str(shown_folder))
-
-    if relative != Path(".") and st.button("⬆️ Up one folder", key="database_up"):
-        st.session_state[state_key] = str(relative.parent)
-        st.rerun()
-
-    if not entries:
-        st.info("This folder is empty.")
-        return
-
-    filter_text = st.text_input(
-        "Filter this folder", key=f"database_filter_{relative}"
-    ).casefold()
-    visible = [entry for entry in entries if filter_text in entry.name.casefold()]
-    if not visible:
-        st.info("No files or folders match this filter.")
-        return
-
-    names = [entry.name for entry in visible]
-    chosen = st.selectbox(
-        "Select a folder or file",
-        names,
-        format_func=lambda name: (
-            f"📁 {name}" if (root / relative / name).is_dir() else f"📄 {name}"
-        ),
-        key=f"database_entry_{relative}",
-    )
-    selected_relative = relative / chosen
-
-    try:
-        selected = database_path(root, selected_relative)
-    except (OSError, ValueError) as error:
-        st.warning(str(error))
-        return
-
-    if selected.is_dir():
-        if st.button("Open folder", key="database_open"):
-            st.session_state[state_key] = str(selected_relative)
-            st.rerun()
-        return
-
-    size = selected.stat().st_size
-    st.write(f"**File:** `{selected_relative}`")
-    st.write(f"**Size:** {_size_label(size)}")
-
-    if size > LARGE_DOWNLOAD_BYTES:
-        st.warning(
-            "This is a large file. Downloading it through Streamlit may use "
-            "substantial server memory."
-        )
-
-    mime = mimetypes.guess_type(selected.name)[0] or "application/octet-stream"
-    st.download_button(
-        "⬇️ Download selected file",
-        data=lambda: download_file(root, selected_relative),
-        file_name=selected.name,
-        mime=mime,
-        key=f"database_download_{selected_relative}",
-    )
-
-    if size <= PREVIEW_BYTES:
-        with selected.open("rb") as file:
-            sample = file.read(PREVIEW_BYTES)
-        if b"\0" not in sample:
-            try:
-                preview = sample.decode("utf-8")
-            except UnicodeDecodeError:
-                pass
-            else:
-                with st.expander("Preview file"):
-                    st.code(preview)
+    left, right = st.columns([1, 3.2], gap="medium")
+    with left, st.container(border=True):
+        _render_folder_tree(root, relative, entries)
+    with right, st.container(border=True):
+        _render_file_list(root, relative, entries)
+        st.divider()
+        _render_selection(root, relative)
