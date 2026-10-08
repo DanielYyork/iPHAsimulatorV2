@@ -41,6 +41,7 @@ from gui.tabs.system_viewer_tab import (
 from gui.tabs.md_system_builder_tab import (
     render_md_system_builder_tab,
 )
+from gui.tabs.database_browser_tab import render_database_browser_tab
 
 from gui.tabs.analysis_tab import (
     render_analysis_tab,
@@ -262,6 +263,7 @@ with st.sidebar:
     system_viewer_tab,
     openmm_builder_tab,
     analysis_tab,
+    database_browser_tab,
 ) = st.tabs(
     [
         "🧱 Polymer Builder",
@@ -270,7 +272,8 @@ with st.sidebar:
         "🤖 MD System Builder",
         "🧬 MD System Viewer",
         "⚛️ OpenMM Script Builder",
-        "Analysis"
+        "Analysis",
+        "📁 Structure Database",
     ]
 )
 
@@ -338,3 +341,7 @@ with analysis_tab:
     render_analysis_tab(
         gui_data
     )
+
+
+with database_browser_tab:
+    render_database_browser_tab()
