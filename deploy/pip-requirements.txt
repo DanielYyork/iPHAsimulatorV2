@@ -1,0 +1,8 @@
+# Python-only additions to the full Conda scientific environment.
+# Direct dependencies pinned; scientific packages protected by pip-constraints.
+pysmiles==2.1.0
+cgsmiles==1.0.2
+polyply==1.8.0
+py3Dmol==2.5.5
+stmol==0.0.9
+kneed==0.8.6

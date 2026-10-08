@@ -1,0 +1,31 @@
+# Allow only the application, deployment files and chemistry inputs.
+# In particular, never send .git, local secrets or hundreds of GB of results.
+**
+!Dockerfile
+!.dockerignore
+!pyproject.toml
+!pha_gui.py
+!streamlit_cloud.py
+!src/
+!src/**
+!gui/
+!gui/**
+!cluster/
+!cluster/**
+!cloud/
+!cloud/streamlit_cloud.py
+!cloud/verify.py
+!deploy/
+!deploy/**
+!structure_database/
+!structure_database/residue_codes.csv
+!structure_database/PHA_types/
+!structure_database/PHA_types/**
+**/__pycache__/**
+**/*.pyc
+**/.DS_Store
+**/*.log
+**/ANTECHAMBER*
+**/ATOMTYPE.INF
+**/sqm.*
+**/*.bak

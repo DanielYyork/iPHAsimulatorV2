@@ -1,0 +1,17 @@
+# Review Render's displayed price before creating this paid service.
+# 1 CPU / 2 GB is a starting point for small workshop examples, not full melt runs.
+services:
+  - type: web
+    name: iphasimulator-workshop
+    runtime: docker
+    branch: dan
+    region: frankfurt
+    plan: 1c-2g
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /_stcore/health
+    autoDeployTrigger: "off"
+    disk:
+      name: workshop-data
+      mountPath: /app/structure_database
+      sizeGB: 5
