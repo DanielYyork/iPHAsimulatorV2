@@ -1,0 +1,32 @@
+# Automatically combine production EDR parts.
+# Keep this TXT and combine_edr.sh in the analysis folder.
+# Keep the raw EDR parts and combined EDR in its parent folder.
+#
+# Run from the analysis folder:
+#   bash combine_edr.sh --dry-run
+#   bash combine_edr.sh
+#
+# Edit FIRST and PARTS_PREFIX for another simulation. The script detects
+# all available four-digit numbered parts for that exact prefix, in order.
+# Example: ../step8_production_1us finds .part0002.edr, .part0003.edr, etc.
+# No last part number is required: a missing part0006 is fine.
+# Paths are relative to this analysis folder.
+# Values are plain text: no surrounding quotes, spaces around =, or inline comments.
+# Do not include minimisation, NVT, NPT, previously combined files, or rerun EDRs.
+# The parts must belong to the same production simulation, with continuous
+# original timestamps. This script preserves timestamps; it does not reset them.
+#
+# The script uses gmx eneconv to combine the energy records. It does not
+# extract energies or plot figures. Existing output files are protected.
+# Check GROMACS's reported start/end times and any gaps after combining.
+# The detected file list is printed; detection alone cannot prove time continuity.
+# The word 'all' in the output name does not guarantee a particular duration.
+# If a run fails, inspect any partial output before choosing a fresh filename.
+#
+# For subsequent statistics, calculate from the extracted energy time series:
+# eneconv does not correctly update all accumulated statistical fields.
+
+GMX=gmx
+OUTPUT=../production_combined_1us.edr
+FIRST=../step7_production.edr
+PARTS_PREFIX=../step8_production_1us

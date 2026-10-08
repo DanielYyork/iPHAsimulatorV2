@@ -14,7 +14,9 @@ them.
 src/md_simulation_scripts/
 ├── README.md
 ├── trajectory_preparation/
-│   ├── process_trajectory.sh
+│   ├── prepare_md_files.ipynb
+│   ├── templates/                    # tested combine + protein-only SH/TXT files
+│   ├── process_trajectory.sh         # older manual SOLU/index-based template
 │   └── instrcution.txt
 ├── enzyme_contacts/
 │   ├── enzyme_contacts.ipynb
@@ -23,6 +25,32 @@ src/md_simulation_scripts/
 └── enzyme_pha_analysis/
     └── enzyme_pha_analysis.ipynb
 ```
+
+## Automatic preparation notebook
+
+Open [trajectory_preparation/prepare_md_files.ipynb](trajectory_preparation/prepare_md_files.ipynb).
+Set `SIMULATION_DIR` to your raw simulation folder and **Run All**:
+
+1. Detect and combine production EDR parts in the raw folder.
+2. Detect and combine production XTC parts in the raw folder.
+3. Centre on **Protein only** with `-pbc mol -ur compact -center`, retain **System**,
+   and write the full processed XTC and a `-skip 100` preview in `analysis/`.
+
+The notebook defaults to ANC55_P3HO4 and its `step8_production_1us` continuations.
+Edit the filename settings for other systems. It installs the tested SH/TXT
+templates from `trajectory_preparation/templates/` only when local files are missing;
+existing local settings must agree with the notebook settings. Combined files remain
+in the raw folder. Non-empty existing outputs are reused if their inputs are not newer;
+this does not revalidate their integrity. New continuation parts require fresh output names.
+The notebook stops on failure and records incomplete stages and GROMACS logs in `analysis/`.
+Set `DRY_RUN=True` to inspect the plan without writes or GROMACS execution.
+
+This workflow uses standard Python, Bash and GROMACS; it does not require MDAnalysis.
+It does not modify teaching notebooks or research analysis notebooks.
+
+The manual instructions below describe the **older SOLU/index-based template** at
+`trajectory_preparation/process_trajectory.sh`. For the current protein-only workflow,
+use the notebook or its `templates/` SH/TXT files.
 
 ## 1. Prepare a new simulation's analysis folder
 
@@ -34,8 +62,8 @@ For example, after setting your repository and simulation paths:
 REPO=/path/to/iPHASimulator_v2
 SIM=/path/to/GK13_P3HO_4_gromacs
 mkdir "$SIM/analysis"
-cp "$REPO/md_simulation_scripts/trajectory_preparation/process_trajectory.sh" "$SIM/analysis/"
-cp "$REPO/md_simulation_scripts/trajectory_preparation/instrcution.txt" "$SIM/analysis/"
+cp "$REPO/src/md_simulation_scripts/trajectory_preparation/process_trajectory.sh" "$SIM/analysis/"
+cp "$REPO/src/md_simulation_scripts/trajectory_preparation/instrcution.txt" "$SIM/analysis/"
 cp "$SIM/step7_production.tpr" "$SIM/analysis/"
 cp "$SIM/step6.2_npt.gro" "$SIM/analysis/"
 cp "$SIM/index.ndx" "$SIM/analysis/"

@@ -1,0 +1,43 @@
+# Centre an enzyme–PHA production trajectory on the PROTEIN ONLY
+#
+# Run from this analysis folder:
+#   bash process_trajectory.sh
+# Check the plan without creating any files or processing trajectories:
+#   bash process_trajectory.sh --dry-run
+#
+# This is the only settings file used by process_trajectory.sh. No YAML needed.
+# Edit values after = and save. Use plain values without quotes, spaces
+# around =, or inline comments. Paths are relative to this analysis folder.
+#
+# Keep raw XTC, production TPR, GRO, and original index in the parent folder.
+# The script generates protein_center.ndx here from the production TPR on
+# its first run; it reuses that index later. Do not copy a generated index
+# between different simulations: copy only this TXT and the SH script.
+# Protein = enzyme only (excludes LIG); System = all atoms including LIG,
+# water, and ions. The original ../index.ndx is not modified or used.
+#
+# 1. Read the combined XTC from the parent folder.
+# 2. Apply -pbc mol -ur compact -center with Protein as the centring group.
+#    Save ALL frames to processed_protein_centered.xtc in this folder.
+# 3. Save every 100th processed frame to
+#    processed_protein_centered_every100.xtc for VMD.
+#
+# ANALYSIS: use processed_protein_centered.xtc. u.trajectory[::100] samples
+# fewer frames without changing the stored file. Enzyme-PHA distances and
+# contacts must still account for PBC. No fitting or nojump is applied.
+# VMD: load ../step6.2_npt.gro, then add the new every100 XTC to that molecule.
+#
+# Old processed.xtc / processed_every100.xtc are left untouched.
+# Existing new outputs are protected: rename them or change PROCESSED and
+# PREVIEW before rerunning. Inspect any partial output after a failed run.
+# Requires Bash and GROMACS (gmx), with no notebook or Python dependencies.
+
+INPUT=../production_combined_1us.xtc
+TPR=../step7_production.tpr
+INDEX=protein_center.ndx
+CENTER_GROUP=Protein
+OUTPUT_GROUP=System
+STRIDE=100
+PROCESSED=processed_protein_centered.xtc
+PREVIEW=processed_protein_centered_every100.xtc
+GMX=gmx

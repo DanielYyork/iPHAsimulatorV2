@@ -1,0 +1,31 @@
+# Automatically combine production XTC parts.
+# Keep this TXT and combine_xtc.sh in the analysis folder.
+# Raw parts and the combined trajectory remain in the parent raw folder.
+#
+# Check the detected files without creating outputs:
+#   bash combine_xtc.sh --dry-run
+# Combine them:
+#   bash combine_xtc.sh
+# Then centre and compact-wrap the combined trajectory:
+#   bash process_trajectory.sh
+#
+# Edit FIRST, PARTS_PREFIX and OUTPUT for another simulation.
+# PARTS_PREFIX detects available .part0002.xtc, .part0003.xtc, etc.
+# No final part number is required. Paths are relative to this analysis folder.
+# Use plain values: no surrounding quotes, spaces around =, or inline comments.
+#
+# Only combine parts from the same production simulation with matching atom
+# counts and atom order, and continuous original timestamps.
+# gmx trjcat preserves timestamps and removes duplicate-time frames by default.
+# No centring, PBC correction, fitting or frame skipping is performed here.
+# Check the printed input list and GROMACS time coverage for gaps after merging.
+# Existing outputs are protected. Inspect any partial output after failure.
+# The output filename alone does not guarantee a particular duration.
+#
+# GROMACS reference:
+# https://manual.gromacs.org/documentation/5.1/onlinehelp/gmx-trjcat.html
+
+GMX=gmx
+OUTPUT=../production_combined_1us.xtc
+FIRST=../step7_production.xtc
+PARTS_PREFIX=../step8_production_1us
