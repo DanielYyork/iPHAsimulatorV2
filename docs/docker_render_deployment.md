@@ -27,8 +27,8 @@ keeps installation failures and the application checks fatal to the build.
 The Docker lock uses MDTraj 1.10.3 because 1.11.1's Python metadata requires
 NumPy 2, while this environment's PyDeck requires NumPy below 2. This avoids a
 conflict that Conda's package metadata alone did not identify. The original
-Community Cloud environment file is unchanged; the override is recorded in
-`deploy/environment-provenance.json`.
+Community Cloud environment is preserved in Git history; its source revision
+and the override are recorded in `deploy/environment-provenance.json`.
 
 Biopython is also pinned to 1.85 to meet the requirements of AmberTools 26's
 bundled `proprep`. PDB2PQR 3.7.1 is included for `proprep` and `packmol-memgen`.
@@ -68,8 +68,8 @@ git push origin dan
 Review staged changes before committing; do not use `git add .`, because this
 checkout contains unrelated research data and scripts.
 
-The existing `pha_gui.py`, `streamlit_cloud.py`, `cloud/streamlit_cloud.py`,
-`gui/`, `src/`, `cluster/`, `pyproject.toml`, residue registry and PHA chemistry
+The existing `pha_gui.py`, `cloud/verify.py`, `gui/`, `src/`, `cluster/`,
+`pyproject.toml`, residue registry and PHA chemistry
 inputs must already be on the branch. The `.dockerignore` deliberately excludes
 `.git`, secrets, generated MD systems, trajectories, scratch folders and local
 registries. A new deployment starts with the supplied chemistry and empty
@@ -160,8 +160,10 @@ Use Render's build/deploy logs. Copy the **first failed command and its error**:
   contents. Do not delete a populated disk just to restart.
 - Runtime memory limit: reduce the example workload or choose a larger instance.
 
-Do not return to editing Community Cloud's `environment.yml` for this deployment;
-Render follows the Dockerfile. The old Cloud files remain available for reference.
+Render follows the Dockerfile and `deploy/` dependencies. The retired Community
+Cloud launchers, environment, solver metadata and hosting guide are available
+in Git history. `cloud/verify.py` remains an active Render build check.
+The root `environment.yml` and `environment-gui.yml` remain for local/Sunbird use.
 
 ## Optional local Docker commands
 
@@ -200,7 +202,9 @@ declared Conda dependencies. Seven regression tests passed for the dependency
 checker, including rejection of the original four-error log and broken-provider
 failures. Open Babel Python/executable conversions were also exercised using the
 existing Mac installation, with only its older ACPYPE version guard substituted.
-The revised complete container still requires a Render build.
+On 8 October 2026, the user confirmed that deployment on Render succeeded.
+The subsequent cleanup removes the obsolete Community Cloud launchers and their
+Docker COPY entries; that cleanup has not yet been rebuilt on Render.
 
 References:
 

@@ -33,11 +33,11 @@ RUN mkdir -p /app /opt/ipha-seed && \
 USER $MAMBA_USER
 WORKDIR /app
 
-COPY --chown=$MAMBA_USER:$MAMBA_USER pyproject.toml pha_gui.py streamlit_cloud.py ./
+COPY --chown=$MAMBA_USER:$MAMBA_USER pyproject.toml pha_gui.py ./
 COPY --chown=$MAMBA_USER:$MAMBA_USER src/ ./src/
 COPY --chown=$MAMBA_USER:$MAMBA_USER gui/ ./gui/
 COPY --chown=$MAMBA_USER:$MAMBA_USER cluster/ ./cluster/
-COPY --chown=$MAMBA_USER:$MAMBA_USER cloud/streamlit_cloud.py cloud/verify.py ./cloud/
+COPY --chown=$MAMBA_USER:$MAMBA_USER cloud/verify.py ./cloud/
 COPY --chown=$MAMBA_USER:$MAMBA_USER deploy/ ./deploy/
 # Only the chemistry library is shipped; research systems/trajectories are not.
 COPY --chown=$MAMBA_USER:$MAMBA_USER structure_database/residue_codes.csv /opt/ipha-seed/residue_codes.csv

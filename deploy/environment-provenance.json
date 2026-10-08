@@ -7,7 +7,7 @@
   "download_bytes": 1029613021,
   "archive_checksums": "MD5 from conda-forge repodata",
   "conda_installation": "Explicit package URLs bypass the solver.",
-  "verification": "Archive identities matched cached conda-forge repodata; Docker build and Linux execution not yet verified.",
+  "verification": "Archive identities matched conda-forge metadata. User reported successful Render deployment on 2026-10-08. Full image not built locally; subsequent Cloud-file cleanup has not been deployed.",
   "overrides": [
     {
       "package": "mdtraj",
@@ -21,5 +21,7 @@
       "locked_version": "1.85",
       "reason": "AmberTools 26 bundles proprep 1.0.0, whose Python metadata requires Biopython >=1.83,<1.86."
     }
-  ]
+  ],
+  "source_git_revision": "8fc6e61814ce7b51f9a0d9263673029d0caebc1d",
+  "source_status": "Retired Community Cloud file; recover from Git history at source_git_revision."
 }
