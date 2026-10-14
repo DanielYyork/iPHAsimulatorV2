@@ -1032,7 +1032,7 @@ class BuildSimulation:
         xyz = state.getPositions()
         vx, vy, vz = state.getPeriodicBoxVectors()
 
-        initial_temp = start_temp if heating is True else max_temp
+        initial_temp = start_temp
 
         integrator = LangevinIntegrator(
             initial_temp * kelvin,
@@ -1157,6 +1157,12 @@ class BuildSimulation:
             integrator.setTemperature(
                 temp_i * kelvin
             )
+
+            if ensemble == "NPT":
+                simulation.context.setParameter(
+                    MonteCarloBarostat.Temperature(),
+                    float(temp_i),
+                )
 
             simulation.step(
                 steps_at_increment
